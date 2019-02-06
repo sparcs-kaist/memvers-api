@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>SPARCS Web Edalias</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <script>
+    var un = '';
+    var pw = '';
+    var all = [];
+    var aliases = [];
+    function login() {
+      un = $('#un').val();
+      pw = $('#pw').val();
+      if (un && pw) {
+        axios.post('/login', { un: un, pw: pw })
+        .then(res => {
+          if (res.data.result) {
+            all = res.data.all;
+            aliases = res.data.aliases;
+            all.forEach(m => {
+              $('#div-list').append(`<div class="form-check" id="check-div-${m}"></div>`);
+              $(`#check-div-${m}`).append(`<input class="form-check-input" type="checkbox" value="" id="check-${m}">`);
+              $(`#check-div-${m}`).append(`<label class="form-check-label" for="check-${m}">${m}</label>`);
+            });
+            aliases.forEach(m => {
+              $(`#check-${m}`).attr('checked', true);
+            });
+
+            $('#div-login').hide();
+            $('#div-alias').show();
+          } else {
+            alert('Login failed');
+            $('#pw').val('');
+          }
+        })
+        .catch(err => {
+          alert('Network error');
+        });
+      }
+    }
+    function init() {
+      un = '';
+      pw = '';
+      all = [];
+      aliases = [];
+
+      $('#un').val('');
+      $('#pw').val('');
+      $('#div-list').html('');
+      $('#div-alias').hide();
+      $('#div-login').show();
+    }
+
+    $(document).ready(() => {
+      $('#login').click(login);
+      $('#pw').keyup(e => {
+        if (e.which == 13) login();
+      });
+      $('#update').click(() => {
+        let added = [];
+        let removed = [];
+	all.forEach(m => {
+	  if ($(`#check-${m}`).prop('checked') && !aliases.includes(m))
+            added.push(m);
+	});
+	aliases.forEach(m => {
+	  if (!$(`#check-${m}`).prop('checked'))
+            removed.push(m);
+	});
+        axios.post('/update', { un: un, pw: pw, added: added, removed: removed })
+        .then(res => {
+          if (res.data.result) alert('Update succeeded');
+          else alert('Authentication failed');
+          init();
+        })
+        .catch(err => {
+          alert('Network error');
+        });
+      });
+    });
+    </script>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>SPARCS Web Edalias</h1>
+
+      <div id="div-login">
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="basic-addon1">Username</span>
+          </div>
+          <input id="un" type="text" class="form-control" placeholder="old.sparcs.org username" aria-label="id" aria-describedby="basic-addon1">
+        </div>
+        
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="basic-addon2">Password</span>
+          </div>
+          <input id="pw" type="password" class="form-control" placeholder="old.sparcs.org password" aria-label="pw" aria-describedby="basic-addon2">
+        </div>
+
+        <button id="login" type="button" class="btn btn-primary btn-lg btn-block">Login</button>
+      </div>
+
+      <div id="div-alias" style="display:none">
+        <div id="div-list"></div>
+        <button id="update" type="button" class="btn btn-primary btn-lg btn-block">Update</button>
+      </div>
+    </div>
+  </body>
+</html> 
