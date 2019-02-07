@@ -164,4 +164,7 @@ $(document).ready(() => {
     $('#div-login').hide();
     $('#div-alias').show();
   });
+  $('#title').click(() => {
+    init();
+  });
 });
