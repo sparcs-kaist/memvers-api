@@ -18,7 +18,7 @@ function escape(str) {
 function login(body, cb0, cb1) {
   let _un = body.un;
   let un = escape(_un);
-  let pw = body.pw;
+  let pw = escape(body.pw);
   if (un && pw) {
     exec(`ldapwhoami -H ldap://ldap.sparcs.org -D "uid=${un},ou=People,dc=sparcs,dc=org" -w "${pw}"`, (error, stdout, stderr) => {
       if (error) cb1();
