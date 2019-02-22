@@ -3,6 +3,59 @@ var pw = '';
 var all = [];
 var aliases = [];
 
+function init() {
+  un = '';
+  pw = '';
+  all = [];
+  aliases = [];
+
+  $('#un').val('');
+  $('#pw').val('');
+  $('#name').val('');
+  $('#desc').val('');
+  $('#npass').val('');
+  $('#cpass').val('');
+  $('#div-list').html('');
+  $('#div-alias').hide();
+  $('#div-create').hide();
+  $('#div-forward').hide();
+  $('#div-passwd').hide();
+  $('#div-login').show();
+}
+
+function isLower(ch) { return 'a' <= ch && ch <= 'z'; }
+function isUpper(ch) { return 'A' <= ch && ch <= 'Z'; }
+function isDigit(ch) { return '0' <= ch && ch <= '9'; }
+
+function _acceptable(ch) {
+  return isLower(ch) || isDigit(ch) || ch === '-';
+}
+
+function acceptable(str) {
+  for (var i = 0; i < str.length; i++)
+    if (!_acceptable(str[i])) return false;
+  return true;
+}
+
+function checkPassword(str) {
+  if (str.length < 8) return false;
+
+  function exists(f) {
+    for (var i = 0; i < str.length; i++)
+      if (f(str[i])) return true;
+	return false;
+  }
+
+  if (!exists(isLower)) return false;
+  if (!exists(isUpper)) return false;
+  if (!exists(isDigit)) return false;
+  if (!exists(
+    ch => { return !isLower(ch) && !isUpper(ch) && !isDigit(ch); }
+  )) return false;
+
+  return true;
+}
+
 function login() {
   un = $('#un').val();
   pw = $('#pw').val();
@@ -41,35 +94,47 @@ function login() {
   }
 }
 
-function init() {
-  un = '';
-  pw = '';
-  all = [];
-  aliases = [];
-
-  $('#un').val('');
-  $('#pw').val('');
-  $('#name').val('');
-  $('#desc').val('');
-  $('#div-list').html('');
-  $('#div-alias').hide();
-  $('#div-create').hide();
-  $('#div-forward').hide();
-  $('#div-login').show();
-}
-
-function _acceptable(ch) {
-  return ('a' <= ch && ch <= 'z') || ('0' <= ch && ch <= '9') || ch === '-';
-}
-
-function acceptable(str) {
-  for (var i = 0; i < str.length; i++)
-    if (!_acceptable(str[i])) return false;
-  return true;
+function change() {
+  let npass = $('#npass').val();
+  let cpass = $('#cpass').val();
+  if (npass === cpass) {
+    if (checkPassword(npass)) {
+      axios.post('/passwd', { un: un, pw: pw, npass: npass })
+      .then(res => {
+        if (res.data.result) {
+          if (res.data.succ) {
+            $('#h-alert').text('Update succeeded :)');
+            $('#modal-alert').modal('show');
+            init();
+          } else {
+            $('#h-alert').text('Update failed :(');
+            $('#modal-alert').modal('show');
+          }
+        } else {
+          $('#h-alert').text('Authentication error :(');
+          $('#modal-alert').modal('show');
+          init();
+        }
+      })
+      .catch(err => {
+        $('#h-alert').text('Network error :(');
+        $('#modal-alert').modal('show');
+      });
+    } else {
+      $('#h-alert').text('Too weak :(');
+      $('#modal-alert').modal('show');
+    }
+  } else {
+    $('#h-alert').text('Not confirmed :(');
+    $('#modal-alert').modal('show');
+  }
 }
 
 $(document).ready(() => {
   $('#login').click(login);
+  $('#un').keyup(e => {
+    if (e.which == 13) login();
+  });
   $('#pw').keyup(e => {
     if (e.which == 13) login();
   });
@@ -152,6 +217,13 @@ $(document).ready(() => {
       $('#modal-alert').modal('show');
     });
   });
+  $('#change').click(change);
+  $('#npass').keyup(e => {
+    if (e.which == 13) change();
+  });
+  $('#cpass').keyup(e => {
+    if (e.which == 13) change();
+  });
   $('#new').click(() => {
     $('#div-login').hide();
     $('#div-create').show();
@@ -163,6 +235,10 @@ $(document).ready(() => {
   $('#edit').click(() => {
     $('#div-login').hide();
     $('#div-alias').show();
+  });
+  $('#passwd').click(() => {
+    $('#div-login').hide();
+    $('#div-passwd').show();
   });
   $('#title').click(() => {
     init();

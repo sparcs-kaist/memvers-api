@@ -65,15 +65,36 @@
         <div id="div-list"></div>
         <button id="update" type="button" class="btn btn-primary btn-lg btn-block">Update</button>
       </div>
+
+      <div id="div-passwd" style="display:none">
+        <p>Use at least one lower case latin letter, at least one upper case latin letter, at least one digit, and at least one special character.</p>
+        <p>Your password should contain at least eight characters.</p>
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="basic-addon1">New Password</span>
+          </div>
+          <input id="npass" type="password" class="form-control" placeholder="new old.sparcs.org password" aria-label="id" aria-describedby="basic-addon1">
+        </div>
+
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="basic-addon2">Confirm Password</span>
+          </div>
+          <input id="cpass" type="password" class="form-control" placeholder="confirm new old.sparcs.org password" aria-label="pw" aria-describedby="basic-addon2">
+        </div>
+
+        <button id="change" type="button" class="btn btn-primary btn-lg btn-block">Change</button>
+      </div>
     </div>
 
     <div class="modal fade" id="modal-action" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true" data-keyboard="false" data-backdrop="static">
-      <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
           <div class="modal-body">
             <h5>Login succeeds :)</h5>
           </div>
           <div class="modal-footer">
+            <button id="passwd" type="button" class="btn btn-primary" data-dismiss="modal">Password</button>
             <button id="new" type="button" class="btn btn-primary" data-dismiss="modal">Create</button>
             <button id="fwd" type="button" class="btn btn-primary" data-dismiss="modal">Forward</button>
             <button id="edit" type="button" class="btn btn-primary" data-dismiss="modal">Edit</button>

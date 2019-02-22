@@ -11,8 +11,7 @@ function escape(str) {
   return str
     .replace(/\\/gi, '\\\\')
     .replace(/\"/gi, '\\\"')
-    .replace(/\$/gi, '\\$')
-    .replace(/!/gi, '\\!');
+    .replace(/\$/gi, '\\$');
 }
 
 function login(body, cb0, cb1) {
@@ -20,7 +19,8 @@ function login(body, cb0, cb1) {
   let un = escape(_un);
   let pw = escape(body.pw);
   if (un && pw) {
-    exec(`ldapwhoami -H ldap://ldap.sparcs.org -D "uid=${un},ou=People,dc=sparcs,dc=org" -w "${pw}"`, (error, stdout, stderr) => {
+    exec(`ldapwhoami -H ldap://ldap.sparcs.org -D "uid=${un},ou=People,dc=sparcs,dc=org" -w "${pw}"`,
+	  { shell: '/bin/sh' }, (error, stdout, stderr) => {
       if (error) cb1();
       else if (stdout.length > 0 && stderr.length === 0) cb0(_un);
       else cb1();
@@ -105,6 +105,20 @@ app.post('/forward', (req, res) => {
     fs.writeFile(path, mail, {flag: 'w'}, err => {
       if (err) res.json({ result: true, succ: false });
       else res.json({ result: true, succ: true });
+    });
+  }, () => { res.json({ result: false }); });
+});
+
+app.post('/passwd', (req, res) => {
+  login(req.body, _un => {
+    let un = escape(req.body.un);
+	let opass = escape(req.body.pw);
+    let npass = escape(req.body.npass);
+    exec(`ldappasswd -H ldap://ldap.sparcs.org -D "uid=${un},ou=People,dc=sparcs,dc=org" -S -w "${opass}" -s "${npass}"`,
+	  { shell: '/bin/sh' }, (error, stdout, stderr) => {
+      if (error) res.json({ result: true, succ: false });
+      else if (stdout.length === 0 && stderr.length === 0) res.json({ result: true, succ: true });
+      else res.json({ result: true, succ: false });
     });
   }, () => { res.json({ result: false }); });
 });
