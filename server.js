@@ -1,7 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const bodyParser = require('body-parser')
-const { exec } = require('child_process');
+const { exec, execSync } = require('child_process');
 const nodemailer = require("nodemailer");
 const mongoose = require('mongoose');
 
@@ -15,6 +15,7 @@ const adminPasswordFile = '/admin_password'
 
 const resetLength = 50;
 const resetTime = 1200;
+const nuid = parseInt(execSync('id -u nobody', { shell: '/bin/sh' }));
 
 function randChar() { return String.fromCharCode(97 + Math.floor(Math.random() * 26)); }
 function randStr() {
@@ -44,7 +45,7 @@ function login(body, cb0, cb1) {
   let pw = escape(body.pw);
   if (un && pw) {
     exec(`ldapwhoami -H ldap://ldap.sparcs.org -D "uid=${un},ou=People,dc=sparcs,dc=org" -w "${pw}"`,
-	  { shell: '/bin/sh' }, (error, stdout, stderr) => {
+	  { shell: '/bin/sh', uid: nuid }, (error, stdout, stderr) => {
       if (error) cb1();
       else if (stdout.length > 0 && stderr.length === 0) cb0(_un);
       else cb1();
@@ -139,7 +140,7 @@ app.post('/passwd', (req, res) => {
 	let opass = escape(req.body.pw);
     let npass = escape(req.body.npass);
     exec(`ldappasswd -H ldap://ldap.sparcs.org -D "uid=${un},ou=People,dc=sparcs,dc=org" -S -w "${opass}" -s "${npass}"`,
-	  { shell: '/bin/sh' }, (error, stdout, stderr) => {
+	  { shell: '/bin/sh', uid: nuid }, (error, stdout, stderr) => {
       if (error) res.json({ result: true, succ: false });
       else if (stdout.length === 0 && stderr.length === 0) res.json({ result: true, succ: true });
       else res.json({ result: true, succ: false });
@@ -182,7 +183,7 @@ app.post('/reset/:serial', (req, res) => {
         let npass = escape(req.body.npass);
         let apass = escape(fs.readFileSync(adminPasswordFile).toString().trim());
 		exec(`ldappasswd -H ldap://ldap.sparcs.org -D "cn=admin,dc=sparcs,dc=org" -S -w "${apass}" "uid=${reset.un},ou=People,dc=sparcs,dc=org" -s "${npass}"`,
-	      { shell: '/bin/sh' }, (error, stdout, stderr) => {
+	      { shell: '/bin/sh', uid: nuid }, (error, stdout, stderr) => {
           if (error) res.json({ result: true, succ: false });
           else if (stdout.length === 0 && stderr.length === 0) res.json({ result: true, succ: true });
           else res.json({ result: true, succ: false });
