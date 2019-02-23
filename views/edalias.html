@@ -30,6 +30,9 @@
         </div>
 
         <button id="login" type="button" class="btn btn-primary btn-lg btn-block">Login</button>
+
+        <p style="display:inline">If you forgot your password:</p>
+        <button id="reset" type="button" class="btn btn-secondary btn-sm">Reset Password</button>
       </div>
 
       <div id="div-create" style="display:none">
@@ -111,6 +114,31 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="modal-reset" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Reset Password</h5>
+          </div>
+          <div class="modal-body">
+            <p>Ensure that your SPARCS email ([uid]@sparcs.org) is safe.</p>
+            <p>A password reset link will be sent to your SPARCS email.</p>
+            <p>If you did not configure your SPARCS email correctly, then contact to SPARCS Wheel (wheel@sparcs.org).</p>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">Username</span>
+              </div>
+              <input id="un-reset" type="text" class="form-control" placeholder="old.sparcs.org username" aria-label="id" aria-describedby="basic-addon1">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button id="resetpass" type="button" class="btn btn-primary">Reset</button>
           </div>
         </div>
       </div>

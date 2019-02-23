@@ -130,6 +130,15 @@ function change() {
   }
 }
 
+function resetPassword() {
+  let un = $('#un-reset').val();
+  if (un) {
+    $('#un-reset').val('');
+    axios.post('/reset', { un: un });
+    $('#modal-reset').modal('hide');
+  }
+}
+
 $(document).ready(() => {
   $('#login').click(login);
   $('#un').keyup(e => {
@@ -217,6 +226,10 @@ $(document).ready(() => {
       $('#modal-alert').modal('show');
     });
   });
+  $('#resetpass').click(resetPassword);
+  $('#un-reset').keyup(e => {
+    if (e.which == 13) resetPassword();
+  });
   $('#change').click(change);
   $('#npass').keyup(e => {
     if (e.which == 13) change();
@@ -239,6 +252,9 @@ $(document).ready(() => {
   $('#passwd').click(() => {
     $('#div-login').hide();
     $('#div-passwd').show();
+  });
+  $('#reset').click(() => {
+    $('#modal-reset').modal('show');
   });
   $('#title').click(() => {
     init();
