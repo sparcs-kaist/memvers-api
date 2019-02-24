@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "sudo node server/main.js"
+    "start": "NODE_ENV=production sudo -E node server/main.js",
+    "dev": "NODE_ENV=development sudo -E node server/main.js"
   },
   "author": "",
   "license": "ISC",

@@ -5,11 +5,10 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 const { initDB, ResetModel } = require('./db.js');
 const api = require('./api.js');
+const { port, resetTime, secure, maxAge } = require('../config/config.js');
+const { secret } = require('../config/local_config.js');
 
 const app = express();
-
-const resetLength = 50;
-const resetTime = 1200;
 
 function checkAuth(req, res, next) {
   let un = req.session.un;
@@ -32,10 +31,10 @@ function checkAuth(req, res, next) {
 
 initDB();
 app.use(session({
-  secret: 'foo',
+  secret: secret,
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false, maxAge: 600000 },
+  cookie: { secure: secure, maxAge: maxAge * 60 * 1000 },
   store: new MongoStore({ mongooseConnection: mongoose.connection })
 }));
 app.use(express.static('static'));
@@ -83,7 +82,7 @@ app.get('/reset/:serial', (req, res) => {
   ResetModel.findOne({ serial: serial }, (err, reset) => {
     if (!reset)
 	  res.end('Link not exists');
-	else if (Date.now() - reset.date > resetTime * 1000) {
+	else if (Date.now() - reset.date > resetTime * 60 * 1000) {
 	  ResetModel.deleteOne({ serial: serial }, err => {});
 	  res.end('Link expired');
 	} else
@@ -91,6 +90,7 @@ app.get('/reset/:serial', (req, res) => {
   });
 });
 
-const server = app.listen(80, () => {
-  console.log('The server running at port 80');
+const server = app.listen(port, () => {
+  console.log(process.env.NODE_ENV);
+  console.log('The server running at port ' + port);
 });
