@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "sudo node server.js"
+    "start": "sudo node server/main.js"
   },
   "author": "",
   "license": "ISC",

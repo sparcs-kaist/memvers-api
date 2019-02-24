@@ -1,70 +1,20 @@
 const express = require('express');
-const fs = require('fs');
-const bodyParser = require('body-parser')
 const { exec, execSync } = require('child_process');
+const fs = require('fs');
 const nodemailer = require("nodemailer");
-const mongoose = require('mongoose');
-const session = require('express-session');
-const MongoStore = require('connect-mongo')(session);
+const { ResetModel } = require('./db.js');
 
-const app = express();
+const router = express.Router();
 const transporter = nodemailer.createTransport({host: "127.0.0.1", port: 25});
-const Schema = mongoose.Schema;
+
 const aliasdir = '/SPARCS/mail/aliases.d/';
 const aliasfile = '/etc/aliases';
 const homedir = '/home/';
 const adminPasswordFile = '/admin_password'
-
 const resetLength = 50;
 const resetTime = 1200;
+
 const nuid = parseInt(execSync('id -u nobody', { shell: '/bin/sh' }));
-
-function randChar() { return String.fromCharCode(97 + Math.floor(Math.random() * 26)); }
-function randStr() {
-  let s = '';
-  for (var i = 0; i < resetLength; i++) s += randChar();
-  return s;
-}
-
-mongoose.connect('mongodb://127.0.0.1/wedalias');
-const resetSchema = new Schema({
-  un: { type: String },
-  serial: { type: String, default: randStr },
-  date: { type: Date, default: Date.now }
-});
-const ResetModel = mongoose.model('resets', resetSchema);
-
-function checkAuth(req, res, next) {
-  let un = req.session.un;
-  let url = req.url;
-  if (url.endsWith('/')) url = url.substring(0, url.length - 1);
-  if (url !== '/login' && url !== '/api/login' &&
-      !url.startsWith('/reset') && !url.startsWith('/api/reset') &&
-      un === undefined) {
-    if (url.startsWith('/api'))
-      res.json({ expired: true });
-    else
-      res.redirect('/login');
-  } else if (url === '/login' && un !== undefined)
-    res.redirect('/');
-  else if (url === '/reset' && un !== undefined)
-    res.redirect('/passwd');
-  else
-    next();
-}
-
-app.use(session({
-  secret: 'foo',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false, maxAge: 600000 },
-  store: new MongoStore({ mongooseConnection: mongoose.connection })
-}));
-app.use(express.static('static'));
-app.use(bodyParser.json());
-app.use(checkAuth);
-app.set('views', __dirname + '/views');
-app.engine('.html', require('ejs').renderFile);
 
 function escape(str) {
   return str
@@ -73,53 +23,7 @@ function escape(str) {
     .replace(/\$/gi, '\\$');
 }
 
-app.get('/', (req, res) => {
-  res.render('main.ejs');
-});
-
-app.get('/login', (req, res) => {
-  res.render('login.ejs');
-});
-
-app.get('/logout', (req, res) => {
-  req.session.destroy();
-  res.redirect('/login');
-});
-
-app.get('/passwd', (req, res) => {
-  res.render('passwd.ejs');
-});
-
-app.get('/mkml', (req, res) => {
-  res.render('mkml.ejs');
-});
-
-app.get('/forward', (req, res) => {
-  res.render('forward.ejs');
-});
-
-app.get('/edalias', (req, res) => {
-  res.render('edalias.ejs');
-});
-
-app.get('/reset', (req, res) => {
-  res.render('reset.ejs');
-});
-
-app.get('/reset/:serial', (req, res) => {
-  let serial = req.params.serial;
-  ResetModel.findOne({ serial: serial }, (err, reset) => {
-    if (!reset)
-	  res.end('Link not exists');
-	else if (Date.now() - reset.date > resetTime * 1000) {
-	  ResetModel.deleteOne({ serial: serial }, err => {});
-	  res.end('Link expired');
-	} else
-      res.render('reset.html');
-  });
-});
-
-app.post('/api/login', (req, res) => {
+router.post('/login', (req, res) => {
   let _un = req.body.un;
   let un = escape(_un);
   let pw = escape(req.body.pw);
@@ -137,7 +41,7 @@ app.post('/api/login', (req, res) => {
   } else res.json(fail)
 });
 
-app.post('/api/passwd', (req, res) => {
+router.post('/passwd', (req, res) => {
   let un = escape(req.session.un);
   let opass = escape(req.body.opass);
   let npass = escape(req.body.npass);
@@ -152,7 +56,7 @@ app.post('/api/passwd', (req, res) => {
   } else res.json(fail);
 });
 
-app.post('/api/create', (req, res) => {
+router.post('/create', (req, res) => {
   let un = req.session.un;
   let m = req.body.name;
   if (fs.existsSync(aliasdir + m)) {
@@ -171,7 +75,7 @@ app.post('/api/create', (req, res) => {
   }
 });
 
-app.get('/api/forward', (req, res) => {
+router.get('/forward', (req, res) => {
   let path = homedir + req.session.un + '/.forward'
   fs.stat(path, (err, stats) => {
     if (err) res.json({ mail: '' });
@@ -182,7 +86,7 @@ app.get('/api/forward', (req, res) => {
   });
 });
 
-app.post('/api/forward', (req, res) => {
+router.post('/forward', (req, res) => {
   let mail = req.body.mail;
   let path = homedir + req.session.un + '/.forward'
   fs.writeFile(path, mail, {flag: 'w'}, err => {
@@ -191,7 +95,7 @@ app.post('/api/forward', (req, res) => {
   });
 });
 
-app.get('/api/edalias', (req, res) => {
+router.get('/edalias', (req, res) => {
   let un = req.session.un;
   fs.readdir(aliasdir, (err, files) => {
     let all = files.filter(f => {
@@ -211,7 +115,7 @@ app.get('/api/edalias', (req, res) => {
   })
 });
 
-app.post('/api/edalias', (req, res) => {
+router.post('/edalias', (req, res) => {
   let un = req.session.un;
   req.body.added.forEach(m => {
     fs.writeFileSync(aliasdir + m, '\n' + un, {flag: 'as'});
@@ -224,7 +128,7 @@ app.post('/api/edalias', (req, res) => {
   res.json({ result: true });
 });
 
-app.post('/api/reset', (req, res) => {
+router.post('/reset', (req, res) => {
   let un = req.body.un;
   if (un) {
     ResetModel.findOne({ un: un }, (err, _reset) => {
@@ -247,7 +151,7 @@ app.post('/api/reset', (req, res) => {
   res.end();
 });
 
-app.post('/api/reset/:serial', (req, res) => {
+router.post('/reset/:serial', (req, res) => {
   let serial = req.params.serial;
   ResetModel.findOne({ serial: serial }, (err, reset) => {
     if (!reset)
@@ -270,6 +174,4 @@ app.post('/api/reset/:serial', (req, res) => {
   });
 });
 
-const server = app.listen(80, () => {
-  console.log('The server running at port 80');
-});
+module.exports = router;
