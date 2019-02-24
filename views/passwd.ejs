@@ -7,15 +7,24 @@
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
-    <script src="/scripts/reset.js"></script>
+    <script src="/scripts/passwd.js"></script>
     <script src="/scripts/passutil.js"></script>
   </head>
 
   <body>
     <div class="container">
+      <% include ./header.html %>
+
       <div id="div-passwd">
         <p>Use at least one lower case latin letter, at least one upper case latin letter, at least one digit, and at least one special character.</p>
         <p>Your password should contain at least eight characters.</p>
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="basic-addon1">Current Password</span>
+          </div>
+          <input id="opass" type="password" class="form-control" placeholder="current old.sparcs.org password" aria-label="id" aria-describedby="basic-addon1">
+        </div>
+
         <div class="input-group mb-3">
           <div class="input-group-prepend">
             <span class="input-group-text" id="basic-addon1">New Password</span>

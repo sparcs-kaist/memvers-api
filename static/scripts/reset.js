@@ -1,36 +1,17 @@
-function isLower(ch) { return 'a' <= ch && ch <= 'z'; }
-function isUpper(ch) { return 'A' <= ch && ch <= 'Z'; }
-function isDigit(ch) { return '0' <= ch && ch <= '9'; }
-
-function checkPassword(str) {
-  if (str.length < 8) return false;
-
-  function exists(f) {
-    for (var i = 0; i < str.length; i++)
-      if (f(str[i])) return true;
-	return false;
-  }
-
-  if (!exists(isLower)) return false;
-  if (!exists(isUpper)) return false;
-  if (!exists(isDigit)) return false;
-  if (!exists(
-    ch => { return !isLower(ch) && !isUpper(ch) && !isDigit(ch); }
-  )) return false;
-
-  return true;
-}
-
 function change() {
   let npass = $('#npass').val();
   let cpass = $('#cpass').val();
   if (npass === cpass) {
     if (checkPassword(npass)) {
-      axios.post(window.location.href, { npass: npass })
+      let href = window.location.href;
+      if (href.endsWith('/')) href = href.substring(0, href.length - 1);
+      let index = href.lastIndexOf('/');
+      axios.post('/api/reset' + href.substring(index), { npass: npass })
       .then(res => {
         if (res.data.result) {
           if (res.data.succ) {
             $('#h-alert').text('Update succeeded :)');
+            $('#close').click(() => { location.replace("https://edalias.sparcs.org"); });
             $('#modal-alert').modal('show');
           } else {
             $('#h-alert').text('Update failed :(');
@@ -38,6 +19,7 @@ function change() {
 		  }
         } else {
           $('#h-alert').text('Link expired :(');
+          $('#close').click(() => { location.replace("https://edalias.sparcs.org"); });
           $('#modal-alert').modal('show');
         }
       })
@@ -62,8 +44,5 @@ $(document).ready(() => {
   });
   $('#cpass').keyup(e => {
     if (e.which == 13) change();
-  });
-  $('#close').click(() => {
-    location.replace("https://edalias.sparcs.org");
   });
 });
