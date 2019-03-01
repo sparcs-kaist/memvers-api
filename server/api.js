@@ -60,7 +60,7 @@ router.post('/create', (req, res) => {
     let info = (new Date()).toISOString().substring(0, 10) + ', by ' + un + ', ' + req.body.desc;
     fs.writeFile(aliasDir + m + '.info', info, {flag: 'w'}, err => {
       fs.writeFile(aliasDir + m + '.template', 'mail-archive\n\n' + un, {flag: 'w'}, err => {
-        fs.writeFile(aliasFile, `${m}: :include:${aliasDir}${m}`, {flag: 'as'}, err => {
+        fs.writeFile(aliasFile, '\n' + `${m}: :include:${aliasDir}${m}`, {flag: 'as'}, err => {
           fs.writeFile(aliasDir + m, 'mail-archive\n\n' + un, {flag: 'w'}, err => {
             res.json({ result: true });
           });
