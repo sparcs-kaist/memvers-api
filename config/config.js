@@ -16,7 +16,7 @@ module.exports = {
   mailTo: 'sparcs.org',
   mailSubject: 'old.sparcs.org Password Reset',
   // session
-  secure: true,
+  secure: false,
   maxAge: 5, // minutes
   // ldap
   ldapHost: 'ldap://ldap.sparcs.org',
