@@ -22,7 +22,7 @@ function del() {
 }
 
 $(document).ready(() => {
-  $('#add').click(del);
+  $('#delete').click(del);
   $('#un').keyup(e => {
     if (e.which == 13) del();
   });
