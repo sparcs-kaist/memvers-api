@@ -26,7 +26,7 @@ router.post('/login', (req, res) => {
   let fail = { result: false };
   if (un && pw) {
     exec(`ldapwhoami -H ${ldapHost} -D "uid=${un},ou=People,dc=sparcs,dc=org" -w "${pw}"`,
-	  { shell: '/bin/sh', uid: nuid }, (error, stdout, stderr) => {
+      { shell: '/bin/sh', uid: nuid }, (error, stdout, stderr) => {
       if (error || stdout.length === 0 || stderr.length !== 0) res.json(fail);
       else {
         req.session.un = _un;
@@ -127,20 +127,20 @@ router.post('/reset', (req, res) => {
   let un = req.body.un;
   if (un) {
     ResetModel.findOne({ un: un }, (err, _reset) => {
-	  if (!_reset || Date.now() - _reset.date > resetTime * 60 * 1000) {
-	    ResetModel.deleteOne({ un: un }, err => {});
+      if (!_reset || Date.now() - _reset.date > resetTime * 60 * 1000) {
+        ResetModel.deleteOne({ un: un }, err => {});
         let reset = new ResetModel();
-	    reset.un = un;
-	    let link = resetLink + 'reset/' + reset.serial;
+        reset.un = un;
+        let link = resetLink + 'reset/' + reset.serial;
         let mail = {
-	      to: un + '@' + mailTo,
-	      subject: mailSubject,
-	      text: link,
-	      html: '<a href=\"' + link + '\">Reset password</a>'
-	    };
+          to: un + '@' + mailTo,
+          subject: mailSubject,
+          text: link,
+          html: '<a href=\"' + link + '\">Reset password</a>'
+        };
         transporter.sendMail(mail);
-	    reset.save();
-	  }
+        reset.save();
+      }
     });
   }
   res.end();
@@ -151,21 +151,103 @@ router.post('/reset/:serial', (req, res) => {
   ResetModel.findOne({ serial: serial }, (err, reset) => {
     if (!reset)
       res.json({ result: false });
-	else {
+    else {
       if (Date.now() - reset.date > resetTime * 60 * 1000)
         res.json({ result: false });
-	  else {
+      else {
         let npass = escape(req.body.npass);
         let apass = escape(adminPassword);
-		exec(`ldappasswd -H ${ldapHost} -D "cn=admin,dc=sparcs,dc=org" -S -w "${apass}" "uid=${reset.un},ou=People,dc=sparcs,dc=org" -s "${npass}"`,
-	      { shell: '/bin/sh', uid: nuid }, (error, stdout, stderr) => {
+        exec(`ldappasswd -H ${ldapHost} -D "cn=admin,dc=sparcs,dc=org" -S -w "${apass}" "uid=${reset.un},ou=People,dc=sparcs,dc=org" -s "${npass}"`,
+          { shell: '/bin/sh', uid: nuid }, (error, stdout, stderr) => {
           if (error) res.json({ result: true, succ: false });
           else if (stdout.length === 0 && stderr.length === 0) res.json({ result: true, succ: true });
           else res.json({ result: true, succ: false });
         });
-	  }
-	  ResetModel.deleteOne({ serial: serial }, err => {});
-	}
+      }
+      ResetModel.deleteOne({ serial: serial }, err => {});
+    }
+  });
+});
+
+router.post('/wheel/add', (req, res) => {
+  let un = escape(req.body.un);
+  let apass = escape(adminPassword);
+  let npass = escape(req.body.npass);
+  let year = new Date().getFullYear();
+  let first = (year - 2010) * 100 + 4101;
+  let path = `/${un}.ldif`;
+  let home = homeDir + un;
+  exec(`ldapsearch -H ${ldapHost} -x -LLL -b "ou=People,dc=sparcs,dc=org" | grep uidNumber:`,
+    { shell: '/bin/sh', uid: nuid }, (error, stdout, stderr) => {
+    let uids = stdout.replace(/uidNumber: /gi, '')
+      .split('\n').map(parseInt).filter(i => { return first <= i; })
+    let uid = first;
+    while (uids.includes(uid)) uid++;
+
+    let ldif =
+      `dn: uid=${un},ou=People,dc=sparcs,dc=org` + '\n' +
+      `uid: ${un}` + '\n' +
+      `cn: ${un}` + '\n' +
+      'objectClass: account\n' +
+      'objectClass: posixAccount\n' +
+      'objectClass: top\n' +
+      'objectClass: shadowAccount\n' +
+      'shadowMax: 99999\n' +
+      'shadowWarning: 7\n' +
+      'loginShell: /bin/bash\n' +
+      `uidNumber: ${uid}` + '\n' +
+      'gidNumber: 400\n' +
+      `homeDirectory: /home/${un}`;
+    fs.writeFile(path, ldif, {flag: 'w'}, err => {
+      exec(`ldapadd -H ${ldapHost} -D "cn=admin,dc=sparcs,dc=org" -w "${apass}" -f ${path}`,
+        { shell: '/bin/sh', uid: nuid }, (error, stdout, stderr) => {
+        if (error || stderr) {
+          fs.unlink(path, err => {
+            res.json({ result: false });
+          });
+        } else {
+          exec(`ldappasswd -H ${ldapHost} -D "cn=admin,dc=sparcs,dc=org" -S -w "${apass}" "uid=${un},ou=People,dc=sparcs,dc=org" -s "${npass}"`,
+            { shell: '/bin/sh', uid: nuid }, (error, stdout, stderr) => {
+            fs.unlink(path, err => {
+              fs.mkdir(home, err => {
+                res.json({ result: true });
+              });
+            });
+          });
+        }
+      });
+    });
+  })
+});
+
+router.post('/wheel/delete', (req, res) => {
+  let un = escape(req.body.un);
+  let apass = escape(adminPassword);
+  let home = homeDir + un;
+  let forward = home + '/.forward'
+  exec(`ldapdelete -H ${ldapHost} -D "cn=admin,dc=sparcs,dc=org" -w "${apass}" "uid=${un},ou=People,dc=sparcs,dc=org"`,
+    { shell: '/bin/sh', uid: nuid }, (error, stdout, stderr) => {
+    if (error || stderr)
+      res.json({ result: false });
+    else {
+      fs.readdir(aliasDir, (err, files) => {
+        let all = files.filter(f => {
+          return f.endsWith('.template');
+        }).map(f => {
+          return f.replace('.template', '');
+        });
+        all.forEach(m => {
+          let uns = fs.readFileSync(aliasDir + m).toString().split('\n');
+          uns.splice(uns.indexOf(un));
+          fs.writeFileSync(aliasDir + m, uns.join('\n'), {flag: 'w'});
+        });
+        fs.unlink(forward, err => {
+          fs.rmdir(home, err => {
+            res.json({ result: true });
+          });
+        });
+      });
+    }
   });
 });
 

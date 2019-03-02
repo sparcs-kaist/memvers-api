@@ -25,6 +25,10 @@ function checkAuth(req, res, next) {
     res.redirect('/');
   else if (url === '/reset' && un !== undefined)
     res.redirect('/passwd');
+  else if (url.startsWith('/wheel') && un !== 'wheel')
+    res.redirect('/');
+  else if (url.startsWith('/api/wheel') && un !== 'wheel')
+    res.json({ expired: true });
   else
     next();
 }
@@ -45,7 +49,7 @@ app.set('views', __dirname + '/../views');
 app.engine('.html', require('ejs').renderFile);
 
 app.get('/', (req, res) => {
-  res.render('main.ejs');
+  res.render('main.ejs', { un: req.session.un });
 });
 
 app.get('/login', (req, res) => {
@@ -75,6 +79,14 @@ app.get('/edalias', (req, res) => {
 
 app.get('/reset', (req, res) => {
   res.render('reset.ejs');
+});
+
+app.get('/wheel/add', (req, res) => {
+  res.render('add.ejs');
+});
+
+app.get('/wheel/delete', (req, res) => {
+  res.render('delete.ejs');
 });
 
 app.get('/reset/:serial', (req, res) => {
