@@ -14,7 +14,7 @@ const nuid = parseInt(execSync('id -u nobody', { shell: '/bin/sh' }));
 function escape(str) {
   return str
     .replace(/\\/gi, '\\\\')
-    .replace(/\"/gi, '\\\"')
+    .replace(/"/gi, '\\"')
     .replace(/\$/gi, '\\$');
 }
 
@@ -136,7 +136,7 @@ router.post('/reset', (req, res) => {
           to: un + '@' + mailTo,
           subject: mailSubject,
           text: link,
-          html: '<a href=\"' + link + '\">Reset password</a>'
+          html: '<a href="' + link + '">Reset password</a>'
         };
         transporter.sendMail(mail);
         reset.save();

@@ -2,7 +2,7 @@ function isLower(ch) { return 'a' <= ch && ch <= 'z'; }
 function isUpper(ch) { return 'A' <= ch && ch <= 'Z'; }
 function isDigit(ch) { return '0' <= ch && ch <= '9'; }
 
-function checkPassword(str) {
+function checkPassword(str) { // eslint-disable-line no-unused-vars
   if (str.length < 8) return false;
 
   function exists(f) {

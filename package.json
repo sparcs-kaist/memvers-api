@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "NODE_ENV=production sudo -E node server/main.js",
-    "dev": "NODE_ENV=development sudo -E node server/main.js"
+    "dev": "NODE_ENV=development sudo -E node server/main.js",
+    "lint": "./node_modules/.bin/eslint ."
   },
   "author": "",
   "license": "ISC",
@@ -17,5 +18,9 @@
     "express-session": "^1.15.6",
     "mongoose": "^5.4.14",
     "nodemailer": "^5.1.1"
+  },
+  "devDependencies": {
+    "eslint": "^5.15.0",
+    "eslint-plugin-jquery": "^1.5.0"
   }
 }
