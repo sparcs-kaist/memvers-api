@@ -16,7 +16,7 @@ function change() {
           } else {
             $('#h-alert').text('Update failed :(');
             $('#modal-alert').modal('show');
-		  }
+          }
         } else {
           $('#h-alert').text('Link expired :(');
           $('#close').click(() => { location.replace("https://edalias.sparcs.org"); });

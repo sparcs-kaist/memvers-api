@@ -8,7 +8,7 @@ function checkPassword(str) {
   function exists(f) {
     for (var i = 0; i < str.length; i++)
       if (f(str[i])) return true;
-	return false;
+    return false;
   }
 
   if (!exists(isLower)) return false;

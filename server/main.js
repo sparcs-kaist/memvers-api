@@ -93,11 +93,11 @@ app.get('/reset/:serial', (req, res) => {
   let serial = req.params.serial;
   ResetModel.findOne({ serial: serial }, (err, reset) => {
     if (!reset)
-	  res.end('Link not exists');
-	else if (Date.now() - reset.date > resetTime * 60 * 1000) {
-	  ResetModel.deleteOne({ serial: serial }, err => {});
-	  res.end('Link expired');
-	} else
+      res.end('Link not exists');
+    else if (Date.now() - reset.date > resetTime * 60 * 1000) {
+      ResetModel.deleteOne({ serial: serial }, err => {});
+      res.end('Link expired');
+    } else
       res.render('reset.html');
   });
 });
