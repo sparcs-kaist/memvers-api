@@ -244,7 +244,9 @@ router.post('/reset/:serial', (req, res) => {
 });
 
 router.post('/wheel/add', (req, res) => {
-  let un = escape(req.body.un);
+  let _un = req.body.un;
+  let un = escape(_un);
+  let name = req.body.name;
   let apass = escape(adminPassword);
   let npass = escape(req.body.npass);
   let year = new Date().getFullYear();
@@ -291,7 +293,10 @@ router.post('/wheel/add', (req, res) => {
               logError(req, err);
               fs.mkdir(home, err => {
                 logError(req, err);
-                res.json({ result: true });
+                mysqlQuery('insert into user(id, name) values(?, ?)', [_un, name], err => {
+                  logError(req, err);
+                  res.json({ result: true });
+                });
               });
             });
           });
@@ -302,7 +307,8 @@ router.post('/wheel/add', (req, res) => {
 });
 
 router.post('/wheel/delete', (req, res) => {
-  let un = escape(req.body.un);
+  let _un = req.body.un;
+  let un = escape(_un);
   let apass = escape(adminPassword);
   let home = homeDir + un;
   let forward = home + '/.forward'
@@ -328,7 +334,10 @@ router.post('/wheel/delete', (req, res) => {
           logError(req, err);
           fs.rmdir(home, err => {
             logError(req, err);
-            res.json({ result: true });
+            mysqlQuery('delete from user where id=?', [_un], err => {
+              logError(req, err);
+              res.json({ result: true });
+            });
           });
         });
       });
