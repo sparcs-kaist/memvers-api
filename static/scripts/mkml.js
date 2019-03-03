@@ -1,3 +1,9 @@
+function disable(b) {
+  $('#name').prop('disabled', b);
+  $('#desc').prop('disabled', b);
+  $('#create').prop('disabled', b);
+}
+
 function _acceptable(ch) {
   return isLower(ch) || isDigit(ch) || ch === '-';
 }
@@ -12,6 +18,7 @@ function create() {
   let name = $('#name').val();
   let desc = $('#desc').val();
   if (name && desc) {
+    disable(true);
     if (acceptable(name)) {
       axios.post('/api/create', { name: name, desc: desc })
       .then(res => {
@@ -45,4 +52,5 @@ $(document).ready(() => {
   $('#desc').keyup(e => {
     if (e.which == 13) create();
   });
+  $('#close').click(() => { disable(false); });
 });

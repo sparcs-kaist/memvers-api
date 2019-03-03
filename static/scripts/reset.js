@@ -1,4 +1,11 @@
+function disable(b) {
+  $('#npass').prop('disabled', b);
+  $('#cpass').prop('disabled', b);
+  $('#change').prop('disabled', b);
+}
+
 function change() {
+  disable(true);
   let npass = $('#npass').val();
   let cpass = $('#cpass').val();
   if (npass === cpass) {
@@ -45,4 +52,5 @@ $(document).ready(() => {
   $('#cpass').keyup(e => {
     if (e.which == 13) change();
   });
+  $('#close').click(() => { disable(false); });
 });

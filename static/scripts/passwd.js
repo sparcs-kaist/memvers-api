@@ -1,8 +1,16 @@
+function disable(b) {
+  $('#opass').prop('disabled', b);
+  $('#npass').prop('disabled', b);
+  $('#cpass').prop('disabled', b);
+  $('#change').prop('disabled', b);
+}
+
 function change() {
   let opass = $('#opass').val();
   let npass = $('#npass').val();
   let cpass = $('#cpass').val();
   if (opass && npass && cpass) {
+    disable(true);
     if (npass === cpass) {
       if (checkPassword(npass)) {
         axios.post('/api/passwd', { opass: opass, npass: npass })
@@ -48,4 +56,5 @@ $(document).ready(() => {
   $('#cpass').keyup(e => {
     if (e.which == 13) change();
   });
+  $('#close').click(() => { disable(false); });
 });

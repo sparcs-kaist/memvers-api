@@ -1,8 +1,16 @@
+function disable(b) {
+  $('#un').prop('disabled', b);
+  $('#npass').prop('disabled', b);
+  $('#cpass').prop('disabled', b);
+  $('#add').prop('disabled', b);
+}
+
 function add() {
   let un = $('#un').val();
   let npass = $('#npass').val();
   let cpass = $('#cpass').val();
   if (un && npass && cpass) {
+    disable(true);
     if (npass === cpass) {
       if (checkPassword(npass)) {
         axios.post('/api/wheel/add', { un: un, npass: npass })
@@ -50,4 +58,5 @@ $(document).ready(() => {
   $('#cpass').keyup(e => {
     if (e.which == 13) add();
   });
+  $('#close').click(() => { disable(false); });
 });

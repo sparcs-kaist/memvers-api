@@ -1,4 +1,11 @@
+function disable(b) {
+  $('#un').prop('disabled', b);
+  $('#pw').prop('disabled', b);
+  $('#login').prop('disabled', b);
+}
+
 function login() {
+  disable(true);
   let un = $('#un').val();
   let pw = $('#pw').val();
   if (un && pw) {
@@ -27,4 +34,5 @@ $(document).ready(() => {
   $('#pw').keyup(e => {
     if (e.which == 13) login();
   });
+  $('#close').click(() => { disable(false); });
 });

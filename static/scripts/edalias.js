@@ -1,7 +1,12 @@
 var all = [];
 var aliases = [];
 
+function disable(b) {
+  $('#update').prop('disabled', b);
+}
+
 function get() {
+  disable(true);
   axios.get('/api/edalias')
   .then(res => {
     if (res.data.expired) window.location.href = '/login';
@@ -20,6 +25,7 @@ function get() {
       aliases.forEach(m => {
         $(`#check-${m}`).attr('checked', true);
       });
+      disable(false);
     }
   })
   .catch(err => {
@@ -30,6 +36,7 @@ function get() {
 }
 
 function update() {
+  disable(true);
   let added = all.filter(m => {
     return $(`#check-${m}`).prop('checked') && !aliases.includes(m);
   });
@@ -57,4 +64,5 @@ function update() {
 $(document).ready(() => {
   get();
   $('#update').click(update);
+  $('#close').click(() => { disable(false); });
 });
