@@ -65,7 +65,7 @@ app.get('/logout', (req, res) => {
 });
 
 [
-  'login', 'passwd', 'mkml', 'forward', 'edalias', 'reset', 'nugu'
+  'login', 'passwd', 'mkml', 'forward', 'edalias', 'reset', 'nugu', 'nugus'
 ].forEach(path => {
   app.get('/' + path, (_, res) => {
     res.render(path + '.ejs');

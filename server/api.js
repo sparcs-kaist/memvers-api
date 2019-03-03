@@ -174,22 +174,48 @@ router.get('/nugu', (req, res) => {
 router.post('/nugu', (req, res) => {
   let un = req.session.un;
   let nobj = req.body.nobj;
-  function query() {
-    let keys = Object.keys(nobj);
-    if (keys.length > 0) {
-      let field = keys[0];
-      let value = nobj[field];
-      delete nobj[field];
-      mysqlQuery(`update user set ${field}=? where id=?`, [value, un], (err, results, fields) => {
-        logError(req, err);
-        if (err) res.json({ result: false });
-        else query();
-      });
-    } else {
-      res.json({ result: true });
+  if (nobj) {
+    function query() {
+      let keys = Object.keys(nobj);
+      if (keys.length > 0) {
+        let field = keys[0];
+        let value = nobj[field];
+        delete nobj[field];
+        mysqlQuery(`update user set ${field}=? where id=?`, [value, un], (err, results) => {
+          logError(req, err);
+          if (err) res.json({ result: false });
+          else query();
+        });
+      } else {
+        res.json({ result: true });
+      }
     }
-  }
-  query();
+    query();
+  } else res.json({ result: false });
+});
+
+router.post('/nugus', (req, res) => {
+  let name = req.body.name;
+  if (name) {
+    mysqlQuery('select * from user where id=?', [name], (err, results) => {
+      logError(req, err);
+      if (err)
+        res.json({ result: false });
+      else if (results.length > 0)
+        res.json({ result: true, objs: results });
+      else {
+        mysqlQuery('select * from user where name=?', [name], (err, results) => {
+          logError(req, err);
+          if (err)
+            res.json({ result: false });
+          else if (results.length > 0)
+            res.json({ result: true, objs: results });
+          else
+            res.json({ result: true });
+        });
+      }
+    });
+  } else res.json({ result: false });
 });
 
 router.post('/reset/:serial', (req, res) => {
