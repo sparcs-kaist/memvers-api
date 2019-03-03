@@ -7,8 +7,14 @@ const { initDB, ResetModel } = require('./db.js');
 const api = require('./api.js');
 const { port, resetTime, secure, maxAge } = require('../config/config.js');
 const { secret } = require('../config/local_config.js');
+const { log, logError, logStr } = require('./log.js');
 
 const app = express();
+
+function writeLog(req, res, next) {
+  log(req);
+  next();
+}
 
 function checkAuth(req, res, next) {
   let un = req.session.un;
@@ -43,6 +49,7 @@ app.use(session({
 }));
 app.use(express.static('static'));
 app.use(bodyParser.json());
+app.use(writeLog);
 app.use(checkAuth);
 app.use('/api', api);
 app.set('views', __dirname + '/../views');
@@ -52,57 +59,44 @@ app.get('/', (req, res) => {
   res.render('main.ejs', { un: req.session.un });
 });
 
-app.get('/login', (req, res) => {
-  res.render('login.ejs');
-});
-
 app.get('/logout', (req, res) => {
   req.session.destroy();
   res.redirect('/login');
 });
 
-app.get('/passwd', (req, res) => {
-  res.render('passwd.ejs');
+[
+  'login', 'passwd', 'mkml', 'forward', 'edalias', 'reset'
+].forEach(path => {
+  app.get('/' + path, (_, res) => {
+    res.render(path + '.ejs');
+  });
 });
 
-app.get('/mkml', (req, res) => {
-  res.render('mkml.ejs');
-});
-
-app.get('/forward', (req, res) => {
-  res.render('forward.ejs');
-});
-
-app.get('/edalias', (req, res) => {
-  res.render('edalias.ejs');
-});
-
-app.get('/reset', (req, res) => {
-  res.render('reset.ejs');
-});
-
-app.get('/wheel/add', (req, res) => {
-  res.render('add.ejs');
-});
-
-app.get('/wheel/delete', (req, res) => {
-  res.render('delete.ejs');
+[
+  'add', 'delete'
+].forEach(path => {
+  app.get('/wheel/' + path, (_, res) => {
+    res.render(path + '.ejs');
+  });
 });
 
 app.get('/reset/:serial', (req, res) => {
   let serial = req.params.serial;
   ResetModel.findOne({ serial: serial }, (err, reset) => {
+    logError(err);
     if (!reset)
       res.end('Link not exists');
     else if (Date.now() - reset.date > resetTime * 60 * 1000) {
-      ResetModel.deleteOne({ serial: serial }, err => {});
+      ResetModel.deleteOne({ serial: serial }, err => {
+        logError(err);
+      });
       res.end('Link expired');
     } else
       res.render('reset.html');
   });
 });
 
-const server = app.listen(port, () => {
-  console.log(process.env.NODE_ENV);
-  console.log('The server running at port ' + port);
+app.listen(port, () => {
+  logStr(process.env.NODE_ENV);
+  logStr('The server running at port ' + port);
 });

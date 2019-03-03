@@ -1,5 +1,4 @@
 const cf = 'I want to delete user ';
-var cfm = '';
 
 function setHcf() {
   $('#hcf').text(cf + $('#un').val());
