@@ -65,7 +65,7 @@ app.get('/logout', (req, res) => {
 });
 
 [
-  'login', 'passwd', 'mkml', 'forward', 'edalias', 'reset'
+  'login', 'passwd', 'mkml', 'forward', 'edalias', 'reset', 'nugu'
 ].forEach(path => {
   app.get('/' + path, (_, res) => {
     res.render(path + '.ejs');
@@ -83,12 +83,12 @@ app.get('/logout', (req, res) => {
 app.get('/reset/:serial', (req, res) => {
   let serial = req.params.serial;
   ResetModel.findOne({ serial: serial }, (err, reset) => {
-    logError(err);
+    logError(req, err);
     if (!reset)
       res.end('Link not exists');
     else if (Date.now() - reset.date > resetTime * 60 * 1000) {
       ResetModel.deleteOne({ serial: serial }, err => {
-        logError(err);
+        logError(req, err);
       });
       res.end('Link expired');
     } else

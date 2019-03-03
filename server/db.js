@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
+const mysql = require('mysql');
 const Schema = mongoose.Schema;
 const { resetLength, dbHost, dbName, collectionName } = require('../config/config.js');
+const { mysqlHost, mysqlName, mysqlUser, mysqlPassword } = require('../config/local_config.js');
 
 function randChar() {
   return String.fromCharCode(97 + Math.floor(Math.random() * 26));
@@ -19,11 +21,20 @@ const resetSchema = new Schema({
 });
 const ResetModel = mongoose.model(collectionName, resetSchema);
 
+const connection = mysql.createConnection({
+  host: mysqlHost,
+  database: mysqlName,
+  user: mysqlUser,
+  password: mysqlPassword
+});
+
 function initDB() {
   mongoose.connect('mongodb://' + dbHost + '/' + dbName);
+  connection.connect();
 }
 
 module.exports = {
   initDB: initDB,
-  ResetModel: ResetModel
+  ResetModel: ResetModel,
+  mysqlQuery: (q, ps, cb) => { connection.query(q, ps, cb); }
 };

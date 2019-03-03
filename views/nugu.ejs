@@ -7,21 +7,17 @@
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+    <script src="/scripts/nugu.js"></script>
   </head>
 
   <body>
     <div class="container">
       <% include ./header.html %>
-      <a href="/passwd" id="passwd" type="button" class="btn btn-primary btn-lg btn-block">Change Password</a>
-      <a href="/mkml" id="new" type="button" class="btn btn-primary btn-lg btn-block">Create Mailing List</a>
-      <% if (un !== 'wheel') { %>
-      <a href="/forward" id="fwd" type="button" class="btn btn-primary btn-lg btn-block">Change Forwarding Address</a>
-      <a href="/edalias" id="edit" type="button" class="btn btn-primary btn-lg btn-block">Edit Alias</a>
-      <a href="/nugu" id="nugu" type="button" class="btn btn-primary btn-lg btn-block">Nugu</a>
-      <% } else { %>
-      <a href="/wheel/add" id="edit" type="button" class="btn btn-primary btn-lg btn-block">Add Member</a>
-      <a href="/wheel/delete" id="edit" type="button" class="btn btn-primary btn-lg btn-block">Delete Member</a>
-      <% } %>
+
+      <div id="div-nugu"></div>
+      <button id="save" type="button" class="btn btn-primary btn-lg btn-block">Save</button>
     </div>
+
+    <% include ./modal.html %>
   </body>
 </html> 

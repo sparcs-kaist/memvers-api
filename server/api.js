@@ -2,7 +2,7 @@ const express = require('express');
 const { exec, execSync } = require('child_process');
 const fs = require('fs');
 const nodemailer = require("nodemailer");
-const { ResetModel } = require('./db.js');
+const { ResetModel, mysqlQuery } = require('./db.js');
 const { aliasDir, aliasFile, homeDir, resetTime, resetLink,
   mailHost, mailPort, mailTo, mailSubject, ldapHost } = require('../config/config.js');
 const { adminPassword } = require('../config/local_config.js');
@@ -28,7 +28,7 @@ router.post('/login', (req, res) => {
   if (un && pw) {
     exec(`ldapwhoami -H ${ldapHost} -D "uid=${un},ou=People,dc=sparcs,dc=org" -w "${pw}"`,
       { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
-      logError(err);
+      logError(req, err);
       if (err || stdout.length === 0 || stderr.length !== 0) res.json(fail);
       else {
         req.session.un = _un;
@@ -47,7 +47,7 @@ router.post('/passwd', (req, res) => {
   if (un && opass && npass) {
     exec(`ldappasswd -H ${ldapHost} -D "uid=${un},ou=People,dc=sparcs,dc=org" -S -w "${opass}" -s "${npass}"`,
       { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
-      logError(err);
+      logError(req, err);
       if (err || stdout.length !== 0 || stderr.length !== 0) res.json(fail);
       else res.json(succ);
     });
@@ -62,13 +62,13 @@ router.post('/create', (req, res) => {
   } else {
     let info = (new Date()).toISOString().substring(0, 10) + ', by ' + un + ', ' + req.body.desc;
     fs.writeFile(aliasDir + m + '.info', info, {flag: 'w'}, err => {
-      logError(err);
+      logError(req, err);
       fs.writeFile(aliasDir + m + '.template', 'mail-archive\n\n' + un, {flag: 'w'}, err => {
-        logError(err);
+        logError(req, err);
         fs.writeFile(aliasFile, '\n' + `${m}: :include:${aliasDir}${m}`, {flag: 'as'}, err => {
-          logError(err);
+          logError(req, err);
           fs.writeFile(aliasDir + m, 'mail-archive\n\n' + un, {flag: 'w'}, err => {
-            logError(err);
+            logError(req, err);
             res.json({ result: true });
           });
         });
@@ -80,10 +80,10 @@ router.post('/create', (req, res) => {
 router.get('/forward', (req, res) => {
   let path = homeDir + req.session.un + '/.forward';
   fs.stat(path, (err, stats) => {
-    logError(err);
+    logError(req, err);
     if (err) res.json({ mail: '' });
     else fs.readFile(path, (err, buf) => {
-      logError(err);
+      logError(req, err);
       if (err) res.json({ mail: '' });
       else res.json({ mail: buf.toString() });
     });
@@ -94,7 +94,7 @@ router.post('/forward', (req, res) => {
   let mail = req.body.mail;
   let path = homeDir + req.session.un + '/.forward'
   fs.writeFile(path, mail, {flag: 'w'}, err => {
-    logError(err);
+    logError(req, err);
     if (err) res.json({ result: false });
     else res.json({ result: true });
   });
@@ -103,7 +103,7 @@ router.post('/forward', (req, res) => {
 router.get('/edalias', (req, res) => {
   let un = req.session.un;
   fs.readdir(aliasDir, (err, files) => {
-    logError(err);
+    logError(req, err);
     let all = files.filter(f => {
       return f.endsWith('.template');
     }).map(f => {
@@ -138,9 +138,9 @@ router.post('/reset', (req, res) => {
   let un = req.body.un;
   if (un) {
     ResetModel.findOne({ un: un }, (err, _reset) => {
-      logError(err);
+      logError(req, err);
       if (!_reset || Date.now() - _reset.date > resetTime * 60 * 1000) {
-        ResetModel.deleteOne({ un: un }, err => { logError(err); });
+        ResetModel.deleteOne({ un: un }, err => { logError(req, err); });
         let reset = new ResetModel();
         reset.un = un;
         let link = resetLink + 'reset/' + reset.serial;
@@ -151,7 +151,7 @@ router.post('/reset', (req, res) => {
           html: '<a href="' + link + '">Reset password</a>'
         };
         transporter.sendMail(mail, err => {
-          logError(err);
+          logError(req, err);
           if (!err) reset.save();
         });
       }
@@ -160,10 +160,42 @@ router.post('/reset', (req, res) => {
   res.end();
 });
 
+router.get('/nugu', (req, res) => {
+  let un = req.session.un;
+  mysqlQuery('select * from user where id=?', [un], (err, results, fields) => {
+    logError(req, err);
+    if (err || results.length === 0)
+      res.json({ result: false });
+    else
+      res.json({ result: true, obj: results[0] });
+  });
+});
+
+router.post('/nugu', (req, res) => {
+  let un = req.session.un;
+  let nobj = req.body.nobj;
+  function query() {
+    let keys = Object.keys(nobj);
+    if (keys.length > 0) {
+      let field = keys[0];
+      let value = nobj[field];
+      delete nobj[field];
+      mysqlQuery(`update user set ${field}=? where id=?`, [value, un], (err, results, fields) => {
+        logError(req, err);
+        if (err) res.json({ result: false });
+        else query();
+      });
+    } else {
+      res.json({ result: true });
+    }
+  }
+  query();
+});
+
 router.post('/reset/:serial', (req, res) => {
   let serial = req.params.serial;
   ResetModel.findOne({ serial: serial }, (err, reset) => {
-    logError(err);
+    logError(req, err);
     if (!reset)
       res.json({ result: false });
     else {
@@ -174,13 +206,13 @@ router.post('/reset/:serial', (req, res) => {
         let apass = escape(adminPassword);
         exec(`ldappasswd -H ${ldapHost} -D "cn=admin,dc=sparcs,dc=org" -S -w "${apass}" "uid=${reset.un},ou=People,dc=sparcs,dc=org" -s "${npass}"`,
           { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
-          logError(err);
+          logError(req, err);
           if (err) res.json({ result: true, succ: false });
           else if (stdout.length === 0 && stderr.length === 0) res.json({ result: true, succ: true });
           else res.json({ result: true, succ: false });
         });
       }
-      ResetModel.deleteOne({ serial: serial }, err => { logError(err); });
+      ResetModel.deleteOne({ serial: serial }, err => { logError(req, err); });
     }
   });
 });
@@ -195,7 +227,7 @@ router.post('/wheel/add', (req, res) => {
   let home = homeDir + un;
   exec(`ldapsearch -H ${ldapHost} -x -LLL -b "ou=People,dc=sparcs,dc=org" | grep uidNumber:`,
     { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
-    logError(err);
+    logError(req, err);
     let uids = stdout.replace(/uidNumber: /gi, '')
       .split('\n').map(parseInt).filter(i => { return first <= i; })
     let uid = first;
@@ -216,23 +248,23 @@ router.post('/wheel/add', (req, res) => {
       'gidNumber: 400\n' +
       `homeDirectory: /home/${un}`;
     fs.writeFile(path, ldif, {flag: 'w'}, err => {
-      logError(err);
+      logError(req, err);
       exec(`ldapadd -H ${ldapHost} -D "cn=admin,dc=sparcs,dc=org" -w "${apass}" -f ${path}`,
         { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
-        logError(err);
+        logError(req, err);
         if (err || stderr) {
           fs.unlink(path, err => {
-            logError(err);
+            logError(req, err);
             res.json({ result: false });
           });
         } else {
           exec(`ldappasswd -H ${ldapHost} -D "cn=admin,dc=sparcs,dc=org" -S -w "${apass}" "uid=${un},ou=People,dc=sparcs,dc=org" -s "${npass}"`,
             { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
-            logError(err);
+            logError(req, err);
             fs.unlink(path, err => {
-              logError(err);
+              logError(req, err);
               fs.mkdir(home, err => {
-                logError(err);
+                logError(req, err);
                 res.json({ result: true });
               });
             });
@@ -250,12 +282,12 @@ router.post('/wheel/delete', (req, res) => {
   let forward = home + '/.forward'
   exec(`ldapdelete -H ${ldapHost} -D "cn=admin,dc=sparcs,dc=org" -w "${apass}" "uid=${un},ou=People,dc=sparcs,dc=org"`,
     { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
-    logError(err);
+    logError(req, err);
     if (err || stderr)
       res.json({ result: false });
     else {
       fs.readdir(aliasDir, (err, files) => {
-        logError(err);
+        logError(req, err);
         let all = files.filter(f => {
           return f.endsWith('.template');
         }).map(f => {
@@ -267,9 +299,9 @@ router.post('/wheel/delete', (req, res) => {
           fs.writeFileSync(aliasDir + m, uns.join('\n'), {flag: 'w'});
         });
         fs.unlink(forward, err => {
-          logError(err);
+          logError(req, err);
           fs.rmdir(home, err => {
-            logError(err);
+            logError(req, err);
             res.json({ result: true });
           });
         });
