@@ -98,7 +98,10 @@
       <% if (un !== 'wheel') { %>
       <a href="/forward" id="fwd" class="smallbutton">Change Forwarding Address</a>
       <a href="/edalias" id="edit" class="smallbutton">Edit Alias</a>
-      <% } else { %>
+      <a href="/nugu" id="nugu" class="smallbutton">Nugu Edit</a>
+      <% } %>
+      <a href="/nugus" id="nugus" class="smallbutton">Nugu Search</a>
+      <% if (un === 'wheel') { %>
       <a href="/wheel/add" id="edit" class="smallbutton">Add Member</a>
       <a href="/wheel/delete" id="edit" class="smallbutton">Delete Member</a>
       <% } %>
