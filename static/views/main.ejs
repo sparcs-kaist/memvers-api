@@ -2,108 +2,28 @@
 <html>
   <head>
     <title>Members</title>
+    <link rel="stylesheet" href="/stylesheets/default.css" type="text/css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
-    <style>
-
-      .container {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translateX(-50%) translateY(-50%);
-        width: 90%;
-        max-width: 600px;
-        border-radius: 15px;
-        overflow: hidden;
-        box-shadow: 0px 10px 30px rgba(0,0,0,0.1);
-      }
-
-      .header {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        height: 5rem;
-      }
-
-      .header-button {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: black;
-      }
-
-      .header-button:hover {
-        color: black;
-        text-decoration: none;
-      }
-
-      .smallbutton {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        height: 3rem;
-        background-color: rgb(245, 245, 245);
-        border-radius: 10px;
-        margin-bottom: 0.5rem;
-        color: rgb(53, 53, 53);
-      }
-
-      .smallbutton:hover {
-        background-color: rgb(240, 240, 240);
-        color: rgb(53, 53, 53);
-        text-decoration: none;
-      }
-
-      .logout-button {
-        width: 100%;
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-        height: 3rem;
-        background-color: rgb(235, 41, 41);
-        border-radius: 10px;
-        margin-top: 2rem;
-        margin-bottom: 1rem;
-        color: white;
-        font-weight: 600;
-      }
-
-      .logout-button:hover {
-        background-color: rgb(216, 39, 39);
-      }
-
-      .github-link {
-        text-align: center;
-        margin-top: 1.5rem;
-        margin-bottom: 1rem;
-        font-size: 0.7rem;
-        color: gray;
-      }
-
-    </style>
   </head>
 
   <body>
-    <div class="container">
+    <div class="div-container">
       <% include ./header.html %>
-      <a href="/passwd" class="smallbutton">Change Password</a>
-      <a href="/mkml" id="new" class="smallbutton">Create Mailing List</a>
+      <a href="/passwd" class="smallbutton">비밀번호 변경</a>
+      <a href="/mkml" id="new" class="smallbutton">메일링 리스트 생성</a>
       <% if (un !== 'wheel') { %>
-      <a href="/forward" id="fwd" class="smallbutton">Change Forwarding Address</a>
-      <a href="/edalias" id="edit" class="smallbutton">Edit Alias</a>
-      <a href="/nugu" id="nugu" class="smallbutton">Nugu Edit</a>
+      <a href="/forward" id="fwd" class="smallbutton">포워딩 메일 설정</a>
+      <a href="/edalias" id="edit" class="smallbutton">Alias 편집</a>
+      <a href="/nugu" id="nugu" class="smallbutton">Nugu 편집</a>
       <% } %>
-      <a href="/nugus" id="nugus" class="smallbutton">Nugu Search</a>
+      <a href="/nugus" id="nugus" class="smallbutton">Nugu 검색</a>
       <% if (un === 'wheel') { %>
-      <a href="/wheel/add" id="edit" class="smallbutton">Add Member</a>
-      <a href="/wheel/delete" id="edit" class="smallbutton">Delete Member</a>
+      <a href="/wheel/add" id="edit" class="smallbutton">회원 추가</a>
+      <a href="/wheel/delete" id="edit" class="smallbutton">회원 삭제</a>
       <% } %>
       <% include ./logout.html %>
     </div>
