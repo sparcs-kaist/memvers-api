@@ -15,33 +15,32 @@
   <body>
     <div class="div-container">
       <% include ./header.html %>
-
-      <div id="div-passwd">
-        <p>Use at least one lower case latin letter, at least one upper case latin letter, at least one digit, and at least one special character.</p>
-        <p>Your password should contain at least eight characters.</p>
-        <div class="input-group mb-3">
-          <div class="input-group-prepend">
-            <span class="input-group-text" id="basic-addon1">Current Password</span>
-          </div>
-          <input id="opass" type="password" class="form-control" placeholder="current old.sparcs.org password" aria-label="id" aria-describedby="basic-addon1">
-        </div>
-
-        <div class="input-group mb-3">
-          <div class="input-group-prepend">
-            <span class="input-group-text" id="basic-addon1">New Password</span>
-          </div>
-          <input id="npass" type="password" class="form-control" placeholder="new old.sparcs.org password" aria-label="id" aria-describedby="basic-addon1">
-        </div>
-
-        <div class="input-group mb-3">
-          <div class="input-group-prepend">
-            <span class="input-group-text" id="basic-addon2">Confirm Password</span>
-          </div>
-          <input id="cpass" type="password" class="form-control" placeholder="confirm new old.sparcs.org password" aria-label="pw" aria-describedby="basic-addon2">
-        </div>
-
-        <button id="change" type="button" class="btn btn-primary btn-lg btn-block" style="margin-bottom: 1rem">Change</button>
+      <div class="passwd-notice">
+        <p>최소 하나의 영문 대/소문자, 숫자, 특수문자를 사용하세요.</p>
+        <p>비밀번호는 최소 8글자 이상이어야 합니다.</p>
       </div>
+      <div class="input-group mb-3">
+        <div class="input-group-prepend">
+          <span class="input-group-text" id="basic-addon1">현재 비밀번호</span>
+        </div>
+        <input id="opass" type="password" class="form-control" placeholder="입력..." aria-label="id" aria-describedby="basic-addon1">
+      </div>
+
+      <div class="input-group mb-3">
+        <div class="input-group-prepend">
+          <span class="input-group-text" id="basic-addon1">새 비밀번호</span>
+        </div>
+        <input id="npass" type="password" class="form-control" placeholder="새 비밀번호 입력..." aria-label="id" aria-describedby="basic-addon1">
+      </div>
+
+      <div class="input-group mb-3">
+        <div class="input-group-prepend">
+          <span class="input-group-text" id="basic-addon2">새 비밀번호 확인</span>
+        </div>
+        <input id="cpass" type="password" class="form-control" placeholder="새 비밀번호 재입력..." aria-label="pw" aria-describedby="basic-addon2">
+      </div>
+
+      <button id="change" type="button" class="btn btn-primary btn-lg btn-block" style="margin-bottom: 1rem">Change</button>
     </div>
 
     <% include ./modal.html %>

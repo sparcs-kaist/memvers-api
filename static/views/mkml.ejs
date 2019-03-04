@@ -16,24 +16,21 @@
   <body>
     <div class="div-container">
       <% include ./header.html %>
-
-      <div id="div-create">
-        <div class="input-group mb-3">
-          <div class="input-group-prepend">
-            <span class="input-group-text" id="basic-addon1">Name</span>
-          </div>
-          <input id="name" type="text" class="form-control" placeholder="mailing list name" aria-label="name" aria-describedby="basic-addon1">
+      <div class="input-group mb-3">
+        <div class="input-group-prepend">
+          <span class="input-group-text" id="basic-addon1">Name</span>
         </div>
-        
-        <div class="input-group mb-3">
-          <div class="input-group-prepend">
-            <span class="input-group-text" id="basic-addon2">Description</span>
-          </div>
-          <input id="desc" type="text" class="form-control" placeholder="short description for mailing list" aria-label="desc" aria-describedby="basic-addon2">
-        </div>
-
-        <button id="create" type="button" class="btn btn-primary btn-lg btn-block" style="margin-bottom: 1rem">Create</button>
+        <input id="name" type="text" class="form-control" placeholder="mailing list name" aria-label="name" aria-describedby="basic-addon1">
       </div>
+      
+      <div class="input-group mb-3">
+        <div class="input-group-prepend">
+          <span class="input-group-text" id="basic-addon2">Description</span>
+        </div>
+        <input id="desc" type="text" class="form-control" placeholder="short description for mailing list" aria-label="desc" aria-describedby="basic-addon2">
+      </div>
+
+      <button id="create" type="button" class="btn btn-primary btn-lg btn-block" style="margin-bottom: 1rem">Create</button>
     </div>
 
     <% include ./modal.html %>
