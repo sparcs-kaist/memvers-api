@@ -32,6 +32,13 @@
         width: 100%;
         max-width: 500px;
       }
+
+      .forget-password {
+        margin-top: 1rem;
+        width: 100%;
+        text-align: center;
+        font-size: 0.8rem;
+      }
     </style>
   </head>
 
@@ -56,9 +63,10 @@
         </div>
 
         <button id="login" type="button" class="btn btn-primary btn-lg btn-block">Login</button>
-
-        <p style="display:inline">If you forgot your password:</p>
-        <a id="reset" href="/reset">Reset Password</a>
+        <div class="forget-password">
+          <p style="display:inline">If you forgot your password:</p>
+          <a id="reset" href="/reset">Reset Password</a>
+        </div>
       </div>
     </div>
 

@@ -96,6 +96,10 @@ app.get('/reset/:serial', (req, res) => {
   });
 });
 
+app.get('/default.css', (req, res) => {
+  res.sendFile('/home/dev/wedalias/views/default.css');
+});
+
 app.listen(port, () => {
   logStr(process.env.NODE_ENV);
   logStr('The server running at port ' + port);
