@@ -8,12 +8,38 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
     <script src="/scripts/login.js"></script>
+    <style>
+      .container {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-50%);
+        width: 100%;
+        max-width: 800px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+      }
+
+      #header {
+        margin-bottom: 1rem;
+        font-size: 2rem;
+        font-weight: 600;
+      }
+
+      #div-login {
+        width: 100%;
+        max-width: 500px;
+      }
+    </style>
   </head>
 
   <body>
     <div class="container">
-      <h1 >SPARCS Web Edalias Login</h1>
-
+      <div id="header">
+        SPARCS Web Edalias Login
+      </div>
       <div id="div-login">
         <div class="input-group mb-3">
           <div class="input-group-prepend">
