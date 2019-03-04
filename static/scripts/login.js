@@ -5,10 +5,10 @@ function disable(b) {
 }
 
 function login() {
-  disable(true);
   let un = $('#un').val();
   let pw = $('#pw').val();
   if (un && pw) {
+    disable(true);
     axios.post('/api/login', { un: un, pw: pw })
     .then(res => {
       if (res.data.result)
