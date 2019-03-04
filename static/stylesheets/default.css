@@ -37,6 +37,11 @@
   color: rgb(150,150,150);
 }
 
+#update {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
 .header-button {
   font-size: 1.5rem;
   font-weight: 600;
@@ -107,7 +112,19 @@
 
 .github-link {
   text-align: center;
-  margin-bottom: 1rem;
   font-size: 0.7rem;
   color: gray;
+}
+
+.github {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+#github-icon {
+  width: 0.75rem;
+  margin-right: 5px;
 }
