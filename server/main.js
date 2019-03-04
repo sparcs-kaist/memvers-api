@@ -52,7 +52,7 @@ app.use(bodyParser.json());
 app.use(writeLog);
 app.use(checkAuth);
 app.use('/api', api);
-app.set('views', __dirname + '/../views');
+app.set('views', __dirname + '/../static/views');
 app.engine('.html', require('ejs').renderFile);
 
 app.get('/', (req, res) => {
