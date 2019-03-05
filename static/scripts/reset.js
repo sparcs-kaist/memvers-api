@@ -1,3 +1,10 @@
+function serial() {
+  let href = window.location.href;
+  if (href.endsWith('/')) href = href.substring(0, href.length - 1);
+  let index = href.lastIndexOf('/');
+  return href.substring(index);
+}
+
 function disable(b) {
   $('#npass').prop('disabled', b);
   $('#cpass').prop('disabled', b);
@@ -9,10 +16,7 @@ function change() {
   let npass = $('#npass').val();
   let cpass = $('#cpass').val();
   if (npass === cpass) {
-    let href = window.location.href;
-    if (href.endsWith('/')) href = href.substring(0, href.length - 1);
-    let index = href.lastIndexOf('/');
-    axios.post('/api/reset' + href.substring(index), { npass: npass })
+    axios.post('/api/reset' + serial(), { npass: npass })
     .then(res => {
       if (res.data.result) {
         if (res.data.succ) {
@@ -40,6 +44,14 @@ function change() {
 }
 
 $(document).ready(() => {
+  axios.get('/api/reset' + serial())
+  .then(res => {
+    if (!res.data.result) window.location.href = '/login';
+  })
+  .catch(err => {
+    window.location.href = '/login';
+  });
+
   $('#change').click(change);
   $('#npass').keyup(e => {
     if (e.which == 13) change();

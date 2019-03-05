@@ -49,6 +49,7 @@ function add() {
 }
 
 $(document).ready(() => {
+  checkSession(true);
   $('#add').click(add);
   $('#un').keyup(e => {
     if (e.which == 13) add();

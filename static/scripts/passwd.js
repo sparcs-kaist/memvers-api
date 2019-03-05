@@ -44,6 +44,7 @@ function change() {
 }
 
 $(document).ready(() => {
+  checkSession();
   $('#change').click(change);
   $('#opass').keyup(e => {
     if (e.which == 13) change();

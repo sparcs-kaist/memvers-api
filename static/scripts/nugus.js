@@ -36,6 +36,7 @@ function search() {
 }
 
 $(document).ready(() => {
+  checkSession();
   $('#search').click(search);
   $('#name').keyup(e => {
     if (e.which == 13) search();

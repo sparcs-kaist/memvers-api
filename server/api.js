@@ -1,16 +1,28 @@
 const express = require('express');
-const { exec, execSync } = require('child_process');
+const bodyParser = require('body-parser')
+const mongoose = require('mongoose');
+const session = require('express-session');
+const MongoStore = require('connect-mongo')(session);
 const fs = require('fs');
 const nodemailer = require("nodemailer");
-const { ResetModel, mysqlQuery } = require('./db.js');
-const { aliasDir, aliasFile, homeDir, resetTime, resetLink,
+const { exec, execSync } = require('child_process');
+
+const { initDB, ResetModel, mysqlQuery } = require('./db.js');
+const { log, logError } = require('./log.js');
+
+const { secure, maxAge,
+  aliasDir, aliasFile, homeDir, resetTime, resetLink,
   mailHost, mailPort, mailTo, mailSubject, ldapHost } = require('../config/config.js');
-const { adminPassword } = require('../config/local_config.js');
-const { logError } = require('./log.js');
+const { secret, adminPassword } = require('../config/local_config.js');
 
 const router = express.Router();
 const transporter = nodemailer.createTransport({host: mailHost, port: mailPort});
 const nuid = parseInt(execSync('id -u nobody', { shell: '/bin/sh' }));
+
+function writeLog(req, res, next) {
+  log(req);
+  next();
+}
 
 function escape(str) {
   return str
@@ -22,6 +34,30 @@ function escape(str) {
 function checkPassword(pw, un) {
   return pw && un && pw.length >= 8 && !pw.toLowerCase().includes(un.toLowerCase());
 }
+
+function checkAuth(req, res, next) {
+  let un = req.session.un;
+  let url = req.url;
+  if (url.endsWith('/')) url = url.substring(0, url.length - 1);
+  if (url !== '/login' && !url.startsWith('/reset') && un === undefined)
+    res.json({ expired: true });
+  else if (url.startsWith('/wheel') && un !== 'wheel')
+    res.json({ expired: true });
+  else
+    next();
+}
+
+initDB();
+router.use(session({
+  secret: secret,
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: secure, maxAge: maxAge * 60 * 1000 },
+  store: new MongoStore({ mongooseConnection: mongoose.connection })
+}));
+router.use(bodyParser.json());
+router.use(writeLog);
+router.use(checkAuth);
 
 router.post('/login', (req, res) => {
   let _un = req.body.un;
@@ -40,6 +76,15 @@ router.post('/login', (req, res) => {
       }
     });
   } else res.json(fail)
+});
+
+router.get('/logout', (req, res) => {
+  req.session.destroy();
+  res.json({});
+});
+
+router.get('/un', (req, res) => {
+  res.json({ un: req.session.un });
 });
 
 router.post('/passwd', (req, res) => {
@@ -166,7 +211,7 @@ router.post('/reset', (req, res) => {
       }
     });
   }
-  res.end();
+  res.json({});
 });
 
 router.get('/nugu', (req, res) => {
@@ -225,6 +270,21 @@ router.post('/nugus', (req, res) => {
       }
     });
   } else res.json({ result: false });
+});
+
+router.get('/reset/:serial', (req, res) => {
+  let serial = req.params.serial;
+  ResetModel.findOne({ serial: serial }, (err, reset) => {
+    logError(req, err);
+    if (!reset) res.json({ result: false });
+    else if (Date.now() - reset.date > resetTime * 60 * 1000) {
+      ResetModel.deleteOne({ serial: serial }, err => {
+        logError(req, err);
+      });
+      res.json({ result: false });
+    } else
+      res.json({ result: true });
+  });
 });
 
 router.post('/reset/:serial', (req, res) => {

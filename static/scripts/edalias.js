@@ -62,6 +62,7 @@ function update() {
 }
 
 $(document).ready(() => {
+  checkSession();
   get();
   $('#update').click(update);
   $('#close').click(() => { disable(false); });
