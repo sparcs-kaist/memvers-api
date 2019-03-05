@@ -13,8 +13,7 @@
 
   <body>
     <div class="div-container">
-      <a href="/" type="button" class="btn btn-light btn-lg btn-block">SPARCS Web Edalias</a>
-
+      <% include ./header.html %>
       <p>Ensure that your SPARCS email ([uid]@sparcs.org) is safe.</p>
       <p>A password reset link will be sent to your SPARCS email.</p>
       <p>If you did not configure your SPARCS email correctly, then contact to SPARCS Wheel (wheel@sparcs.org).</p>
@@ -24,7 +23,7 @@
         </div>
         <input id="un-reset" type="text" class="form-control" placeholder="old.sparcs.org username" aria-label="id" aria-describedby="basic-addon1">
       </div>
-      <button id="resetpass" type="button" class="btn btn-primary btn-lg btn-block">Reset</button>
+      <button id="resetpass" type="button" class="btn btn-primary btn-lg btn-block" style="margin-bottom: 1rem">Reset</button>
     </div>
 
     <% include ./modal.html %>
