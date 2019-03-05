@@ -12,19 +12,16 @@
   </head>
 
   <body>
-    <div class="container">
+    <div class="div-container">
       <% include ./header.html %>
-
-      <div id="div-forward">
-        <div class="input-group mb-3">
-          <div class="input-group-prepend">
-            <span class="input-group-text" id="basic-addon1">Email</span>
-          </div>
-          <input id="mail" type="text" class="form-control" placeholder="forwarding mail address" aria-label="name" aria-describedby="basic-addon1">
+      <div class="input-group mb-3">
+        <div class="input-group-prepend">
+          <span class="input-group-text" id="basic-addon1">Email</span>
         </div>
-
-        <button id="save" type="button" class="btn btn-primary btn-lg btn-block" style="margin-bottom: 1rem">Save</button>
+        <input id="mail" type="text" class="form-control" placeholder="forwarding mail address" aria-label="name" aria-describedby="basic-addon1">
       </div>
+
+      <button id="save" type="button" class="btn btn-primary btn-lg btn-block" style="margin-bottom: 1rem">Save</button>
     </div>
 
     <% include ./modal.html %>
