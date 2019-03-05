@@ -42,6 +42,10 @@ router.post('/login', (req, res) => {
   } else res.json(fail)
 });
 
+router.get('/un', (req, res) => {
+  res.json({ un: req.session.un });
+});
+
 router.post('/passwd', (req, res) => {
   let _un = req.session.un;
   let un = escape(_un);

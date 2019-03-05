@@ -55,8 +55,8 @@ app.use('/api', api);
 app.set('views', __dirname + '/../static/views');
 app.engine('.html', require('ejs').renderFile);
 
-app.get('/', (req, res) => {
-  res.render('main.ejs', { un: req.session.un });
+app.get('/', (_, res) => {
+  res.render('main.ejs');
 });
 
 app.get('/logout', (req, res) => {
