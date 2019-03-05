@@ -23,6 +23,20 @@ function checkPassword(pw, un) {
   return pw && un && pw.length >= 8 && !pw.toLowerCase().includes(un.toLowerCase());
 }
 
+function checkAuth(req, res, next) {
+  let un = req.session.un;
+  let url = req.url;
+  if (url.endsWith('/')) url = url.substring(0, url.length - 1);
+  if (url !== '/login' && !url.startsWith('/reset') && un === undefined)
+    res.json({ expired: true });
+  else if (url.startsWith('/wheel') && un !== 'wheel')
+    res.json({ expired: true });
+  else
+    next();
+}
+
+router.use(checkAuth);
+
 router.post('/login', (req, res) => {
   let _un = req.body.un;
   let un = escape(_un);

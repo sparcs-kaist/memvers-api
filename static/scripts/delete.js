@@ -45,6 +45,7 @@ function del() {
 }
 
 $(document).ready(() => {
+  checkSession(true);
   $('#un').val('');
   $('#cf').val('');
   setHcf();

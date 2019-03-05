@@ -42,6 +42,7 @@ function save() {
 }
 
 $(document).ready(() => {
+  checkSession();
   get();
 
   $('#save').click(save);

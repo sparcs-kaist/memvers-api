@@ -4,6 +4,9 @@ function disable(b) {
   $('#create').prop('disabled', b);
 }
 
+function isLower(ch) { return 'a' <= ch && ch <= 'z'; }
+function isDigit(ch) { return '0' <= ch && ch <= '9'; }
+
 function _acceptable(ch) {
   return isLower(ch) || isDigit(ch) || ch === '-';
 }
@@ -45,6 +48,7 @@ function create() {
 }
 
 $(document).ready(() => {
+  checkSession();
   $('#create').click(create);
   $('#name').keyup(e => {
     if (e.which == 13) create();

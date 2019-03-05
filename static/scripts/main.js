@@ -8,8 +8,6 @@ $(document).ready(() => {
     }
   })
   .catch(err => {
-    $('#h-alert').text('Network error :(');
-    $('#close').click(() => { window.location.href = '/'; });
-    $('#modal-alert').modal('show');
+    window.location.href = '/';
   });
 });

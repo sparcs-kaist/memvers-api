@@ -61,6 +61,7 @@ function save() {
 }
 
 $(document).ready(() => {
+  checkSession();
   get();
   $('#save').click(save);
   $('#close').click(() => { disable(false); });

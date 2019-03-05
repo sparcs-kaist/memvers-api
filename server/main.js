@@ -16,29 +16,6 @@ function writeLog(req, res, next) {
   next();
 }
 
-function checkAuth(req, res, next) {
-  let un = req.session.un;
-  let url = req.url;
-  if (url.endsWith('/')) url = url.substring(0, url.length - 1);
-  if (url !== '/login' && url !== '/api/login' &&
-      !url.startsWith('/reset') && !url.startsWith('/api/reset') &&
-      un === undefined) {
-    if (url.startsWith('/api'))
-      res.json({ expired: true });
-    else
-      res.redirect('/login');
-  } else if (url === '/login' && un !== undefined)
-    res.redirect('/');
-  else if (url === '/reset' && un !== undefined)
-    res.redirect('/passwd');
-  else if (url.startsWith('/wheel') && un !== 'wheel')
-    res.redirect('/');
-  else if (url.startsWith('/api/wheel') && un !== 'wheel')
-    res.json({ expired: true });
-  else
-    next();
-}
-
 initDB();
 app.use(session({
   secret: secret,
@@ -50,7 +27,6 @@ app.use(session({
 app.use(express.static('static'));
 app.use(bodyParser.json());
 app.use(writeLog);
-app.use(checkAuth);
 app.use('/api', api);
 app.set('views', __dirname + '/../static/views');
 app.engine('.html', require('ejs').renderFile);

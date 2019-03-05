@@ -27,6 +27,11 @@ function login() {
 }
 
 $(document).ready(() => {
+  axios.get('/api/un')
+  .then(res => {
+    if (!res.data.expired) window.location.href = '/';
+  });
+
   $('#login').click(login);
   $('#un').keyup(e => {
     if (e.which == 13) login();
