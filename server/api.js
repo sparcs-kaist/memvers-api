@@ -1,16 +1,28 @@
 const express = require('express');
-const { exec, execSync } = require('child_process');
+const bodyParser = require('body-parser')
+const mongoose = require('mongoose');
+const session = require('express-session');
+const MongoStore = require('connect-mongo')(session);
 const fs = require('fs');
 const nodemailer = require("nodemailer");
-const { ResetModel, mysqlQuery } = require('./db.js');
-const { aliasDir, aliasFile, homeDir, resetTime, resetLink,
+const { exec, execSync } = require('child_process');
+
+const { initDB, ResetModel, mysqlQuery } = require('./db.js');
+const { log, logError } = require('./log.js');
+
+const { secure, maxAge,
+  aliasDir, aliasFile, homeDir, resetTime, resetLink,
   mailHost, mailPort, mailTo, mailSubject, ldapHost } = require('../config/config.js');
-const { adminPassword } = require('../config/local_config.js');
-const { logError } = require('./log.js');
+const { secret, adminPassword } = require('../config/local_config.js');
 
 const router = express.Router();
 const transporter = nodemailer.createTransport({host: mailHost, port: mailPort});
 const nuid = parseInt(execSync('id -u nobody', { shell: '/bin/sh' }));
+
+function writeLog(req, res, next) {
+  log(req);
+  next();
+}
 
 function escape(str) {
   return str
@@ -35,6 +47,16 @@ function checkAuth(req, res, next) {
     next();
 }
 
+initDB();
+router.use(session({
+  secret: secret,
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: secure, maxAge: maxAge * 60 * 1000 },
+  store: new MongoStore({ mongooseConnection: mongoose.connection })
+}));
+router.use(bodyParser.json());
+router.use(writeLog);
 router.use(checkAuth);
 
 router.post('/login', (req, res) => {

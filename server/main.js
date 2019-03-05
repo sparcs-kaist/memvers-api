@@ -1,31 +1,16 @@
 const express = require('express');
-const bodyParser = require('body-parser')
-const mongoose = require('mongoose');
-const session = require('express-session');
-const MongoStore = require('connect-mongo')(session);
-const { initDB, ResetModel } = require('./db.js');
 const api = require('./api.js');
-const { port, resetTime, secure, maxAge } = require('../config/config.js');
-const { secret } = require('../config/local_config.js');
-const { log, logError, logStr } = require('./log.js');
+const { port } = require('../config/config.js');
+const { logStr } = require('./log.js');
 
 const app = express();
 
 function writeLog(req, res, next) {
-  log(req);
+  logStr(req.url);
   next();
 }
 
-initDB();
-app.use(session({
-  secret: secret,
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: secure, maxAge: maxAge * 60 * 1000 },
-  store: new MongoStore({ mongooseConnection: mongoose.connection })
-}));
 app.use(express.static('static'));
-app.use(bodyParser.json());
 app.use(writeLog);
 app.use('/api', api);
 app.set('views', __dirname + '/../static/views');
