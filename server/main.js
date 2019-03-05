@@ -35,11 +35,6 @@ app.get('/', (_, res) => {
   res.render('main.ejs');
 });
 
-app.get('/logout', (req, res) => {
-  req.session.destroy();
-  res.redirect('/login');
-});
-
 [
   'login', 'passwd', 'mkml', 'forward', 'edalias', 'reset', 'nugu', 'nugus'
 ].forEach(path => {

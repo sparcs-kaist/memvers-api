@@ -56,6 +56,11 @@ router.post('/login', (req, res) => {
   } else res.json(fail)
 });
 
+router.get('/logout', (req, res) => {
+  req.session.destroy();
+  res.json({});
+});
+
 router.get('/un', (req, res) => {
   res.json({ un: req.session.un });
 });
@@ -184,7 +189,7 @@ router.post('/reset', (req, res) => {
       }
     });
   }
-  res.end();
+  res.json({});
 });
 
 router.get('/nugu', (req, res) => {

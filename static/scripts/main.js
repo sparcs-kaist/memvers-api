@@ -11,3 +11,8 @@ $(document).ready(() => {
     window.location.href = '/';
   });
 });
+
+function logout() {
+  axios.get('/api/logout');
+  window.location.href = '/login';
+}
