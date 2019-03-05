@@ -19,6 +19,10 @@ function escape(str) {
     .replace(/\$/gi, '\\$');
 }
 
+function checkPassword(pw, un) {
+  return pw && un && pw.length >= 8 && !pw.toLowerCase().includes(un.toLowerCase());
+}
+
 router.post('/login', (req, res) => {
   let _un = req.body.un;
   let un = escape(_un);
@@ -39,18 +43,23 @@ router.post('/login', (req, res) => {
 });
 
 router.post('/passwd', (req, res) => {
-  let un = escape(req.session.un);
+  let _un = req.session.un;
+  let un = escape(_un);
   let opass = escape(req.body.opass);
-  let npass = escape(req.body.npass);
+  let _npass = req.body.npass;
+  let npass = escape(_npass);
   let succ = { result: true };
+  let weak = { result: false, weak: true };
   let fail = { result: false };
   if (un && opass && npass) {
-    exec(`ldappasswd -H ${ldapHost} -D "uid=${un},ou=People,dc=sparcs,dc=org" -S -w "${opass}" -s "${npass}"`,
-      { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
-      logError(req, err);
-      if (err || stdout.length !== 0 || stderr.length !== 0) res.json(fail);
-      else res.json(succ);
-    });
+    if (checkPassword(_npass, _un)) {
+      exec(`ldappasswd -H ${ldapHost} -D "uid=${un},ou=People,dc=sparcs,dc=org" -S -w "${opass}" -s "${npass}"`,
+        { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
+        logError(req, err);
+        if (err || stdout.length !== 0 || stderr.length !== 0) res.json(fail);
+        else res.json(succ);
+      });
+    } else res.json(weak);
   } else res.json(fail);
 });
 
@@ -228,15 +237,20 @@ router.post('/reset/:serial', (req, res) => {
       if (Date.now() - reset.date > resetTime * 60 * 1000)
         res.json({ result: false });
       else {
-        let npass = escape(req.body.npass);
+        let _un = reset.un;
+        let un = escape(_un);
+        let _npass = req.body.npass;
+        let npass = escape(_npass);
         let apass = escape(adminPassword);
-        exec(`ldappasswd -H ${ldapHost} -D "cn=admin,dc=sparcs,dc=org" -S -w "${apass}" "uid=${reset.un},ou=People,dc=sparcs,dc=org" -s "${npass}"`,
-          { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
-          logError(req, err);
-          if (err) res.json({ result: true, succ: false });
-          else if (stdout.length === 0 && stderr.length === 0) res.json({ result: true, succ: true });
-          else res.json({ result: true, succ: false });
-        });
+        if (checkPassword(_npass, _un)) {
+          exec(`ldappasswd -H ${ldapHost} -D "cn=admin,dc=sparcs,dc=org" -S -w "${apass}" "uid=${un},ou=People,dc=sparcs,dc=org" -s "${npass}"`,
+            { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
+            logError(req, err);
+            if (err) res.json({ result: true, succ: false });
+            else if (stdout.length === 0 && stderr.length === 0) res.json({ result: true, succ: true });
+            else res.json({ result: true, succ: false });
+          });
+        } else res.json({ result: true, succ: false });
       }
       ResetModel.deleteOne({ serial: serial }, err => { logError(req, err); });
     }

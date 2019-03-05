@@ -12,30 +12,28 @@ function change() {
   if (opass && npass && cpass) {
     disable(true);
     if (npass === cpass) {
-      if (checkPassword(npass)) {
-        axios.post('/api/passwd', { opass: opass, npass: npass })
-        .then(res => {
-          if (res.data.expired) window.location.href = '/login';
-          else if (res.data.result) {
-            $('#h-alert').text('Update succeeded :)');
-            $('#close').click(() => { window.location.href = '/'; });
-            $('#modal-alert').modal('show');
-          } else {
-            $('#h-alert').text('Wrong current password :(');
-            $('#modal-alert').modal('show');
-            $('#opass').val('');
-          }
-        })
-        .catch(err => {
-          $('#h-alert').text('Network error :(');
+      axios.post('/api/passwd', { opass: opass, npass: npass })
+      .then(res => {
+        if (res.data.expired) window.location.href = '/login';
+        else if (res.data.result) {
+          $('#h-alert').text('Update succeeded :)');
+          $('#close').click(() => { window.location.href = '/'; });
           $('#modal-alert').modal('show');
-        });
-      } else {
-        $('#h-alert').text('Too weak :(');
+        } else if (res.data.weak) {
+          $('#h-alert').text('Too weak :(');
+          $('#modal-alert').modal('show');
+          $('#npass').val('');
+          $('#cpass').val('');
+        } else {
+          $('#h-alert').text('Wrong current password :(');
+          $('#modal-alert').modal('show');
+          $('#opass').val('');
+        }
+      })
+      .catch(err => {
+        $('#h-alert').text('Network error :(');
         $('#modal-alert').modal('show');
-        $('#npass').val('');
-        $('#cpass').val('');
-      }
+      });
     } else {
       $('#h-alert').text('Not confirmed :(');
       $('#modal-alert').modal('show');

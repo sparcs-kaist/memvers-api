@@ -8,7 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
     <script src="/scripts/passwd.js"></script>
-    <script src="/scripts/passutil.js"></script>
     <link rel="stylesheet" href="/stylesheets/default.css" >
   </head>
 
@@ -16,8 +15,8 @@
     <div class="div-container">
       <% include ./header.html %>
       <div class="passwd-notice">
-        <p>최소 하나의 영문 대/소문자, 숫자, 특수문자를 사용하세요.</p>
         <p>비밀번호는 최소 8글자 이상이어야 합니다.</p>
+        <p>비밀번호는 아이디를 포함하지 않아야 합니다.</p>
       </div>
       <div class="input-group mb-3">
         <div class="input-group-prepend">
