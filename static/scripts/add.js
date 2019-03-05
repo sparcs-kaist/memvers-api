@@ -14,7 +14,6 @@ function add() {
   if (un && name && npass && cpass) {
     disable(true);
     if (npass === cpass) {
-      if (checkPassword(npass)) {
         axios.post('/api/wheel/add', { un: un, name: name, npass: npass })
         .then(res => {
           if (res.data.expired) window.location.href = '/login';
@@ -22,10 +21,16 @@ function add() {
             $('#h-alert').text('Addition succeeded :)');
             $('#close').click(() => { window.location.href = '/'; });
             $('#modal-alert').modal('show');
+          } else if (res.data.weak) {
+            $('#h-alert').text('Too weak :(');
+            $('#modal-alert').modal('show');
+            $('#npass').val('');
+            $('#cpass').val('');
           } else {
             $('#h-alert').text('User already exists :(');
             $('#modal-alert').modal('show');
             $('#un').val('');
+            $('#name').val('');
             $('#npass').val('');
             $('#cpass').val('');
           }
@@ -34,12 +39,6 @@ function add() {
           $('#h-alert').text('Network error :(');
           $('#modal-alert').modal('show');
         });
-      } else {
-        $('#h-alert').text('Too weak :(');
-        $('#modal-alert').modal('show');
-        $('#npass').val('');
-        $('#cpass').val('');
-      }
     } else {
       $('#h-alert').text('Not confirmed :(');
       $('#modal-alert').modal('show');
