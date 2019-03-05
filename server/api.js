@@ -262,62 +262,65 @@ router.post('/wheel/add', (req, res) => {
   let un = escape(_un);
   let name = req.body.name;
   let apass = escape(adminPassword);
-  let npass = escape(req.body.npass);
+  let _npass = req.body.npass;
+  let npass = escape(_npass);
   let year = new Date().getFullYear();
   let first = (year - 2010) * 100 + 4101;
   let path = `/${un}.ldif`;
   let home = homeDir + un;
-  exec(`ldapsearch -H ${ldapHost} -x -LLL -b "ou=People,dc=sparcs,dc=org" | grep uidNumber:`,
-    { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
-    logError(req, err);
-    let uids = stdout.replace(/uidNumber: /gi, '')
-      .split('\n').map(parseInt).filter(i => { return first <= i; })
-    let uid = first;
-    while (uids.includes(uid)) uid++;
-
-    let ldif =
-      `dn: uid=${un},ou=People,dc=sparcs,dc=org` + '\n' +
-      `uid: ${un}` + '\n' +
-      `cn: ${un}` + '\n' +
-      'objectClass: account\n' +
-      'objectClass: posixAccount\n' +
-      'objectClass: top\n' +
-      'objectClass: shadowAccount\n' +
-      'shadowMax: 99999\n' +
-      'shadowWarning: 7\n' +
-      'loginShell: /bin/bash\n' +
-      `uidNumber: ${uid}` + '\n' +
-      'gidNumber: 400\n' +
-      `homeDirectory: /home/${un}`;
-    fs.writeFile(path, ldif, {flag: 'w'}, err => {
+  if (checkPassword(_npass, _un)) {
+    exec(`ldapsearch -H ${ldapHost} -x -LLL -b "ou=People,dc=sparcs,dc=org" | grep uidNumber:`,
+      { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
       logError(req, err);
-      exec(`ldapadd -H ${ldapHost} -D "cn=admin,dc=sparcs,dc=org" -w "${apass}" -f ${path}`,
-        { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
+      let uids = stdout.replace(/uidNumber: /gi, '')
+        .split('\n').map(parseInt).filter(i => { return first <= i; })
+      let uid = first;
+      while (uids.includes(uid)) uid++;
+
+      let ldif =
+        `dn: uid=${un},ou=People,dc=sparcs,dc=org` + '\n' +
+        `uid: ${un}` + '\n' +
+        `cn: ${un}` + '\n' +
+        'objectClass: account\n' +
+        'objectClass: posixAccount\n' +
+        'objectClass: top\n' +
+        'objectClass: shadowAccount\n' +
+        'shadowMax: 99999\n' +
+        'shadowWarning: 7\n' +
+        'loginShell: /bin/bash\n' +
+        `uidNumber: ${uid}` + '\n' +
+        'gidNumber: 400\n' +
+        `homeDirectory: /home/${un}`;
+      fs.writeFile(path, ldif, {flag: 'w'}, err => {
         logError(req, err);
-        if (err || stderr) {
-          fs.unlink(path, err => {
-            logError(req, err);
-            res.json({ result: false });
-          });
-        } else {
-          exec(`ldappasswd -H ${ldapHost} -D "cn=admin,dc=sparcs,dc=org" -S -w "${apass}" "uid=${un},ou=People,dc=sparcs,dc=org" -s "${npass}"`,
-            { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
-            logError(req, err);
+        exec(`ldapadd -H ${ldapHost} -D "cn=admin,dc=sparcs,dc=org" -w "${apass}" -f ${path}`,
+          { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
+          logError(req, err);
+          if (err || stderr) {
             fs.unlink(path, err => {
               logError(req, err);
-              fs.mkdir(home, err => {
+              res.json({ result: false });
+            });
+          } else {
+            exec(`ldappasswd -H ${ldapHost} -D "cn=admin,dc=sparcs,dc=org" -S -w "${apass}" "uid=${un},ou=People,dc=sparcs,dc=org" -s "${npass}"`,
+              { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
+              logError(req, err);
+              fs.unlink(path, err => {
                 logError(req, err);
-                mysqlQuery('insert into user(id, name) values(?, ?)', [_un, name], err => {
+                fs.mkdir(home, err => {
                   logError(req, err);
-                  res.json({ result: true });
+                  mysqlQuery('insert into user(id, name) values(?, ?)', [_un, name], err => {
+                    logError(req, err);
+                    res.json({ result: true });
+                  });
                 });
               });
             });
-          });
-        }
+          }
+        });
       });
-    });
-  })
+    })
+  } else res.json({ result: false, weak: true });
 });
 
 router.post('/wheel/delete', (req, res) => {
