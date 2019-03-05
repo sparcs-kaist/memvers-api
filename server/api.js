@@ -5,6 +5,7 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 const fs = require('fs');
 const nodemailer = require("nodemailer");
+const cors = require('cors');
 const { exec, execSync } = require('child_process');
 
 const { initDB, ResetModel, mysqlQuery } = require('./db.js');
@@ -54,6 +55,11 @@ router.use(session({
   saveUninitialized: true,
   cookie: { secure: secure, maxAge: maxAge * 60 * 1000 },
   store: new MongoStore({ mongooseConnection: mongoose.connection })
+}));
+router.use(cors({
+  origin: ['http://memvers.sparcs.org', 'https://memvers.sparcs.org'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Cookie']
 }));
 router.use(bodyParser.json());
 router.use(writeLog);
