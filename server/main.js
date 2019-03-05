@@ -81,19 +81,7 @@ app.get('/logout', (req, res) => {
 });
 
 app.get('/reset/:serial', (req, res) => {
-  let serial = req.params.serial;
-  ResetModel.findOne({ serial: serial }, (err, reset) => {
-    logError(req, err);
-    if (!reset)
-      res.end('Link not exists');
-    else if (Date.now() - reset.date > resetTime * 60 * 1000) {
-      ResetModel.deleteOne({ serial: serial }, err => {
-        logError(req, err);
-      });
-      res.end('Link expired');
-    } else
-      res.render('reset.html');
-  });
+  res.render('reset.html');
 });
 
 app.listen(port, () => {

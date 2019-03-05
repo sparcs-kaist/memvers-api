@@ -231,6 +231,21 @@ router.post('/nugus', (req, res) => {
   } else res.json({ result: false });
 });
 
+router.get('/reset/:serial', (req, res) => {
+  let serial = req.params.serial;
+  ResetModel.findOne({ serial: serial }, (err, reset) => {
+    logError(req, err);
+    if (!reset) res.json({ result: false });
+    else if (Date.now() - reset.date > resetTime * 60 * 1000) {
+      ResetModel.deleteOne({ serial: serial }, err => {
+        logError(req, err);
+      });
+      res.json({ result: false });
+    } else
+      res.json({ result: true });
+  });
+});
+
 router.post('/reset/:serial', (req, res) => {
   let serial = req.params.serial;
   ResetModel.findOne({ serial: serial }, (err, reset) => {
