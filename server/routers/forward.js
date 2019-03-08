@@ -18,7 +18,7 @@ router.use(auth.loginOnly);
  *
  * @apiError (Error 401) Unauthorized Not logged in
  */
-router.get('/forward', (req, res) => {
+router.get('/', (req, res) => {
   let path = homeDir + req.session.un + '/.forward';
   fs.readFile(path)
   .then(data => successWith('mail', data.toString())())
@@ -38,8 +38,9 @@ router.get('/forward', (req, res) => {
  *
  * @apiError (Error 401) Unauthorized Not logged in
  */
-router.post('/forward', (req, res) => {
+router.post('/', (req, res) => {
   let mail = req.body.mail;
+  if (mail === undefined) mail = '';
   let path = homeDir + req.session.un + '/.forward'
   fs.writeFile(path, mail)
   .then(success)
