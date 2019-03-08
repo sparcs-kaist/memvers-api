@@ -24,7 +24,7 @@ const adminPass = password(adminPassword);
 
 function e(params, cb) { exec(params.join(' '), opt, cb); }
 
-function ldapAuth(un, pw) {
+function auth(un, pw) {
   let command = 'ldapwhoami';
   return new Promise((resolve, reject) => {
     if (un && pw)
@@ -37,7 +37,7 @@ function ldapAuth(un, pw) {
   });
 }
 
-function ldapPasswd(un, opass, npass) {
+function passwd(un, opass, npass) {
   let command = 'ldappasswd';
   return new Promise((resolve, reject) => {
     if (un && opass && npass)
@@ -50,7 +50,7 @@ function ldapPasswd(un, opass, npass) {
   });
 }
 
-function ldapPasswdByAdmin(un, npass) {
+function passwdByAdmin(un, npass) {
   let command = 'ldappasswd';
   return new Promise((resolve, reject) => {
     if (un && npass)
@@ -63,7 +63,7 @@ function ldapPasswdByAdmin(un, npass) {
   });
 }
 
-function ldapUids() {
+function uids() {
   let command = 'ldapsearch';
   return new Promise((resolve, reject) => {
     e([command, host, '-x -LLL -b "ou=People,dc=sparcs,dc=org" | grep uidNumber:'], (err, stdout, stderr) => {
@@ -75,7 +75,7 @@ function ldapUids() {
   });
 }
 
-function ldapAdd(path) {
+function add(path) {
   let command = 'ldapadd';
   return new Promise((resolve, reject) => {
     if (path)
@@ -87,7 +87,7 @@ function ldapAdd(path) {
   });
 }
 
-function ldapDelete(un) {
+function del(un) {
   let command = 'ldapdelete';
   return new Promise((resolve, reject) => {
     if (un)
@@ -99,7 +99,7 @@ function ldapDelete(un) {
   });
 }
 
-function ldapLdif(un, uid) {
+function ldif(un, uid) {
   return [
     `dn: uid=${un},ou=People,dc=sparcs,dc=org`,
     `uid: ${un}`,
@@ -118,5 +118,5 @@ function ldapLdif(un, uid) {
 }
 
 module.exports = {
-  ldapAuth, ldapPasswd, ldapPasswdByAdmin, ldapUids, ldapAdd, ldapDelete, ldapLdif
+  auth, passwd, passwdByAdmin, uids, add, del, ldif
 };
