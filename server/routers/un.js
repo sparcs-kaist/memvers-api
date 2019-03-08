@@ -5,7 +5,7 @@ const router = express.Router();
 router.use(auth.loginOnly);
 
 /**
- * @api {get} /un Un
+ * @api {get} /un Username
  * @apiName Un
  * @apiGroup Auth
  * @apiDescription Get a username

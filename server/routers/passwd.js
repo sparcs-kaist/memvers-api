@@ -38,3 +38,5 @@ router.post('/', (req, res) => {
     });
   else res.json({ success: false, error: 1 });
 });
+
+module.exports = router;

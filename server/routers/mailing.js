@@ -141,3 +141,5 @@ router.post('/', (req, res) => {
     res.json({ success: false });
   });
 });
+
+module.exports = router;
