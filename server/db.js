@@ -30,11 +30,16 @@ const connection = mysql.createConnection({
 
 function initDB() {
   mongoose.connect('mongodb://' + dbHost + '/' + dbName);
-  connection.connect();
+//  connection.connect();
 }
 
-module.exports = {
-  initDB: initDB,
-  ResetModel: ResetModel,
-  mysqlQuery: (q, ps, cb) => { connection.query(q, ps, cb); }
-};
+function mysqlQuery(q, ps) {
+  return new Promise((resolve, reject) =>
+    connection.query(q, ps, (err, res) => {
+      if (err) reject(err);
+      else resolve(res);
+    })
+  );
+}
+
+module.exports = { initDB, ResetModel, mysqlQuery };

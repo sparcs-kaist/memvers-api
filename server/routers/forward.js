@@ -21,8 +21,9 @@ router.use(auth.loginOnly);
 router.get('/forward', (req, res) => {
   let path = homeDir + req.session.un + '/.forward';
   fs.readFile(path)
-  .then(data => res.json({ success: true, mail: data.toString() }))
-  .catch(()  => res.json({ success: true, mail: '' }));
+  .then(data => { success: true, mail: data.toString() })
+  .catch(() => { success: true, mail: '' })
+  .finally(res.json);
 });
 
 /**
@@ -41,11 +42,12 @@ router.post('/forward', (req, res) => {
   let mail = req.body.mail;
   let path = homeDir + req.session.un + '/.forward'
   fs.writeFile(path, mail)
-  .then(() => res.json({ success: true }))
+  .then(() => { success: true })
   .catch(err => {
     log.error(req, err);
-    res.json({ success: false });
-  });
+    return { success: false };
+  })
+  .finally(res.json);
 });
 
 module.exports = router;

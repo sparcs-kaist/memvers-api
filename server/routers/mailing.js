@@ -64,9 +64,9 @@ router.put('/:name', (req, res) => {
  * @apiDescription Get a list of aliases
  *
  * @apiSuccess {Boolean} success Indicate whether succeeded
- * @apiSuccess {Array} all A complete list of mailing lists
+ * @apiSuccess {String[]} all A complete list of mailing lists
  * @apiSuccess {Object} info A mapping from mailing lists to their descriptions
- * @apiSuccess {Array} aliases A list of mailing lists, whom the user subscribed
+ * @apiSuccess {String[]} aliases A list of mailing lists, whom the user subscribed
  *
  * @apiError (Error 401) Unauthorized Not logged in
  */
@@ -112,8 +112,8 @@ router.get('/', (req, res) => {
  * @apiGroup Mailing
  * @apiDescription Modify subscription
  *
- * @apiParam {Array} added Added mailing lists
- * @apiParam {Array} removed Removed mailing lists
+ * @apiParam {String[]} added Added mailing lists
+ * @apiParam {String[]} removed Removed mailing lists
  *
  * @apiSuccess {Boolean} success Indicate whether succeeded
  *
