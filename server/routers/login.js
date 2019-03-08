@@ -1,6 +1,6 @@
 const express = require('express');
-const ldap = require('./ldap.js');
-const log = require('./log.js');
+const ldap = require('../ldap.js');
+const log = require('../log.js');
 
 const router = express.Router();
 
@@ -10,10 +10,9 @@ const router = express.Router();
  * @apiGroup Auth
  * @apiDescription Log in
  *
- * @apiParam {String} un Username
- * @apiParam {String} pw Password
+ * @apiParam {String} un A username
+ * @apiParam {String} pw A password
  *
- * @apiSuccess {Boolean} result Indicate whether succeeded (not recommanded to use)
  * @apiSuccess {Boolean} success Indicate whether succeeded
  */
 router.post('/', (req, res) => {
@@ -22,10 +21,10 @@ router.post('/', (req, res) => {
 
   ldap.auth(un, pw).then(() => {
     req.session.un = un;
-    res.json({ result: true, success: true });
+    res.json({ success: true });
   }).catch(err => {
     log.error(req, err);
-    res.json({ result: false, success: false });
+    res.json({ success: false });
   });
 });
 

@@ -8,12 +8,14 @@ router.use(auth.loginOnly);
  * @api {get} /un Un
  * @apiName Un
  * @apiGroup Auth
- * @apiDescription Get username
+ * @apiDescription Get a username
  *
- * @apiSuccess {String} un Username
+ * @apiSuccess {String} un A username
  *
  * @apiError (Error 401) Unauthorized Not logged in
  */
 router.get('/', (req, res) => {
   res.json({ un: req.session.un });
 });
+
+module.exports = router;
