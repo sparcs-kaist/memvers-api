@@ -2,7 +2,7 @@ const express = require('express');
 const fs = require('fs').promises;
 const ldap = require('../ldap.js');
 const auth = require('../auth.js');
-const { success, failure, errorWith } = require('../response.js');
+const { success, failure, errorWith, json } = require('../response.js');
 const { mysqlQuery } = require('../db.js');
 const { checkPassword } = require('../util.js');
 const { aliasDir, homeDir } = require('../../config/config.js');
@@ -59,7 +59,7 @@ router.put('/:un', (req, res) => {
       ]))
       .then(success)
       .catch(errorWith(0))
-      .finally(res.json);
+      .then(json(res));
     } else res.json(errorWith(1)());
   } else res.json(errorWith(2)());
 });
@@ -107,7 +107,7 @@ router.delete('/:un', (req, res) => {
   ])
   .then(success)
   .catch(failure)
-  .finally(res.json);
+  .then(json(res));
 });
 
 function unlink(path) {

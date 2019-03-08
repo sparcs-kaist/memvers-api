@@ -1,6 +1,6 @@
 const express = require('express');
 const ldap = require('../ldap.js');
-const { success, failure } = require('../response.js');
+const { success, failure, json } = require('../response.js');
 
 const router = express.Router();
 
@@ -24,7 +24,7 @@ router.post('/', (req, res) => {
     return success();
   })
   .catch(failure)
-  .finally(res.json);
+  .then(json(res));
 });
 
 module.exports = router;

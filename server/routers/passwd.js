@@ -1,7 +1,7 @@
 const express = require('express');
 const ldap = require('../ldap.js');
 const auth = require('../auth.js');
-const { success, errorWith } = require('../response.js');
+const { success, errorWith, json } = require('../response.js');
 const { checkPassword } = require('../util.js');
 
 const router = express.Router();
@@ -33,7 +33,7 @@ router.post('/', (req, res) => {
     ldap.passwd(un, opass, npass)
     .then(success)
     .catch(errorWith(0))
-    .finally(res.json);
+    .then(json(res));
   else res.json(errorWith(1)());
 });
 

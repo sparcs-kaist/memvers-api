@@ -1,7 +1,7 @@
 function str(str) {
   if (str)
     /* eslint-disable no-console */
-    console.log(new Date().toString() + '\t' + str.toString());
+    console.log(new Date().toString() + '\t' + str);
     /* eslint-enable no-console */
 }
 
@@ -13,6 +13,13 @@ function req(req, _obj) {
   str(`${url}\t${un}\t${obj}`);
 }
 
-const error = str;
+function error(err) {
+  if (err) {
+    /* eslint-disable no-console */
+    console.log(new Date().toString());
+    console.log(err);
+    /* eslint-enable no-console */
+  }
+}
 
 module.exports = { str, req, error };

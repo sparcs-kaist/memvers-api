@@ -3,8 +3,8 @@ const nodemailer = require('nodemailer');
 const ldap = require('../ldap.js');
 const { ResetModel } = require('../db.js');
 const { checkPassword } = require('../util.js');
-const { success, successWith, failure, errorWith } = require('../response.js');
-const { resetTime, resetLink, mailHost, mailPort, mailTo, mailSubject } = require('../../config.js');
+const { success, successWith, failure, errorWith, json } = require('../response.js');
+const { resetTime, resetLink, mailHost, mailPort, mailTo, mailSubject } = require('../../config/config.js');
 
 const transporter = nodemailer.createTransport({host: mailHost, port: mailPort});
 const router = express.Router();
@@ -48,7 +48,7 @@ router.post('/reset/:un', (req, res) => {
     }) : success()
   )
   .catch(failure)
-  .finally(res.json);
+  .then(json(res));
 });
 
 /**
@@ -73,7 +73,7 @@ router.get('/reset/:serial', (req, res) => {
     successWith('result', true)())
   )
   .catch(failure)
-  .finally(res.json);
+  .then(json(res));
 });
 
 /**
@@ -110,5 +110,7 @@ router.post('/reset/:serial', (req, res) => {
     }
   })
   .catch(errorWith(2))
-  .finally(res.json);
+  .then(json(res));
 });
+
+module.exports = router;

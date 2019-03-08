@@ -1,6 +1,6 @@
 const express = require('express');
 const auth = require('../auth.js');
-const { success, successWith, failure, errorWith } = require('../response.js');
+const { success, successWith, failure, errorWith, json } = require('../response.js');
 const { mysqlQuery } = require('../db.js');
 
 const router = express.Router();
@@ -34,7 +34,7 @@ router.get('/nugu', (req, res) => {
     errorWith(0)()
   )
   .catch(errorWith(1))
-  .finally(res.json);
+  .then(json(res));
 });
 
 /**
@@ -62,7 +62,7 @@ router.post('/nugu', (req, res) => {
     ))
     .then(success)
     .catch(errorWith(0))
-    .finally(res.json);
+    .then(json(res));
   } else res.json(errorWith(1)());
 });
 
@@ -88,7 +88,7 @@ router.get('/nugu/:name', (req, res) => {
     mysqlQuery(nameQuery, [name]).then(objs => successWith('objs', objs)())
   )
   .catch(failure)
-  .finally(res.json);
+  .then(json(res));
 });
 
 module.exports = router;

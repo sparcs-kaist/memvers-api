@@ -1,8 +1,8 @@
 const express = require('express');
 const fs = require('fs').promises;
-const { success, failure, errorWith } = require('../response.js');
+const { success, failure, errorWith, json } = require('../response.js');
 const auth = require('../auth.js');
-const { aliasDir, aliasFile } = require('../config/config.js');
+const { aliasDir, aliasFile } = require('../../config/config.js');
 
 const router = express.Router();
 router.use(auth.loginOnly);
@@ -50,7 +50,7 @@ router.put('/:name', (req, res) => {
       ])
       .then(success)
       .catch(errorWith(1))
-    ).finally(res.json)
+    ).then(json(res))
   } else res.json(errorWith(2)());
 });
 
@@ -98,7 +98,7 @@ router.get('/', (req, res) => {
     });
   })
   .catch(failure)
-  .finally(res.json)
+  .then(json(res))
 });
 
 /**
@@ -132,7 +132,7 @@ router.post('/', (req, res) => {
   Promise.all(addProm.concat(remProm))
   .then(success)
   .catch(failure)
-  .finally(res.json);
+  .then(json(res));
 });
 
 module.exports = router;

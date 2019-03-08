@@ -1,3 +1,4 @@
+const assert = require('assert');
 const log = require('./log.js');
 
 function objWith(...args) {
@@ -27,4 +28,6 @@ function errorWith(err, ...args) {
   return failureWith(...args, 'error', err);
 }
 
-module.exports = { objWith, successWith, failureWith, errorWith, success, failure };
+function json(res) { return j => res.json(j); }
+
+module.exports = { objWith, successWith, failureWith, errorWith, success, failure, json };
