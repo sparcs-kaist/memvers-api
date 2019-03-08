@@ -6,7 +6,7 @@
   "scripts": {
     "start": "NODE_ENV=production sudo -E node server/main.js",
     "dev": "NODE_ENV=development sudo -E node server/main.js",
-    "lint": "./node_modules/.bin/eslint ."
+    "lint": "./node_modules/.bin/eslint server"
   },
   "author": "",
   "license": "ISC",
