@@ -1,6 +1,6 @@
 const express = require('express');
 const fs = require('fs').promises;
-const log = require('../log.js');
+const { success, failure, errorWith } = require('../response.js');
 const auth = require('../auth.js');
 const { aliasDir, aliasFile } = require('../config/config.js');
 
@@ -40,7 +40,7 @@ router.put('/:name', (req, res) => {
 
   if (un && m && desc) {
     fs.stat(file)
-    .then(() => res.json({ success: false, error: 0 }))
+    .then(errorWith(0))
     .catch(() =>
       Promise.all([
         fs.writeFile(file, uns),
@@ -48,13 +48,10 @@ router.put('/:name', (req, res) => {
         fs.writeFile(ifile, info),
         fs.writeFile(aliasFile, alias, {flag: 'as'}),
       ])
-      .then(() => res.json({ success: true }))
-      .catch(err => {
-        log.error(req, err);
-        res.json({ success: false, error: 1 })
-      })
-    );
-  } else res.json({ success: false, error: 2 });
+      .then(success)
+      .catch(errorWith(1))
+    ).finally(res.json)
+  } else res.json(errorWith(2)());
 });
 
 /**
@@ -83,7 +80,7 @@ router.get('/', (req, res) => {
       Promise.all(all.map(f =>
         fs.readFile(aliasDir + f + suffix)
         .then(data => {return {f, data}; })
-        .catch(err => {return {f, data: ''}; })
+        .catch(() => {return {f, data: ''}; })
       ));
 
     readAll('.info')
@@ -96,14 +93,12 @@ router.get('/', (req, res) => {
         let aliases = objs
           .filter(obj => obj.data.toString().split('\n').includes(un))
           .map(obj => obj.f);
-        res.json({ success: true, all: all, info: info, aliases: aliases });
+        return { success: true, all: all, info: info, aliases: aliases };
       })
     });
   })
-  .catch(err => {
-     log.error(req, err);
-     res.json({ success: false });
-  });
+  .catch(failure)
+  .finally(res.json)
 });
 
 /**
@@ -135,11 +130,9 @@ router.post('/', (req, res) => {
   );
 
   Promise.all(addProm.concat(remProm))
-  .then(() => { success: true })
-  .catch(err => {
-    log.error(req, err);
-    res.json({ success: false });
-  });
+  .then(success)
+  .catch(failure)
+  .finally(res.json);
 });
 
 module.exports = router;

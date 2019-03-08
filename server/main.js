@@ -3,6 +3,7 @@ const bodyParser = require('body-parser')
 const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
+const cors = require('cors');
 
 const api = require('./api.js');
 const log = require('./log.js');
@@ -19,14 +20,14 @@ function writeLog(req, res, next) {
 }
 
 initDB();
-router.use(session({
+app.use(session({
   secret: secret,
   resave: false,
   saveUninitialized: true,
   cookie: { secure: secure, maxAge: maxAge * 60 * 1000 },
   store: new MongoStore({ mongooseConnection: mongoose.connection })
 }));
-router.use(cors({
+app.use(cors({
   origin: ['http://memvers.sparcs.org', 'https://memvers.sparcs.org'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Cookie']
@@ -40,6 +41,6 @@ app.use('/api', api);
   .forEach(r => app.use('/' + r, require('./routers/' + r + '.js')));
 
 app.listen(port, () => {
-  logStr(process.env.NODE_ENV);
-  logStr('The server running at port ' + port);
+  log.str(process.env.NODE_ENV);
+  log.str('The server running at port ' + port);
 });

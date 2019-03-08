@@ -1,6 +1,6 @@
 const express = require('express');
 const ldap = require('../ldap.js');
-const log = require('../log.js');
+const { success, failure } = require('../response.js');
 
 const router = express.Router();
 
@@ -21,11 +21,10 @@ router.post('/', (req, res) => {
 
   ldap.auth(un, pw).then(() => {
     req.session.un = un;
-    res.json({ success: true });
-  }).catch(err => {
-    log.error(req, err);
-    res.json({ success: false });
-  });
+    return success();
+  })
+  .catch(failure)
+  .finally(res.json);
 });
 
 module.exports = router;

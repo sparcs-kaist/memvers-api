@@ -1,8 +1,11 @@
 const express = require('express');
+const fs = require('fs').promises;
 const ldap = require('../ldap.js');
-const log = require('../log.js');
 const auth = require('../auth.js');
+const { success, failure, errorWith } = require('../response.js');
+const { mysqlQuery } = require('../db.js');
 const { checkPassword } = require('../util.js');
+const { aliasDir, homeDir } = require('../../config/config.js');
 
 const router = express.Router();
 router.use(auth.wheelOnly);
@@ -47,21 +50,18 @@ router.put('/:un', (req, res) => {
     if (checkPassword(npass, un)) {
       ldap.uids()
       .then(uids => fs.writeFile(path, ldap.ldif(un, getUid(uids))))
-      .then(() => ldapAdd(path))
+      .then(() => ldap.add(path))
       .then(() => Promise.all([
-        ldapPasswdByAdmin(un, npass),
+        ldap.passwdByAdmin(un, npass),
         fs.unlink(path),
         fs.mkdir(home),
         mysqlQuery('insert into user(id, name) values(?, ?)', [un, name])
-      ]).
-      .then(() => { success: true })
-      .catch(err => {
-        logError(req, err);
-        return { success: false, error: 0 };
-      })
+      ]))
+      .then(success)
+      .catch(errorWith(0))
       .finally(res.json);
-    } else res.json({ success: false, error: 1 });
-  } else res.json({ success: false, error: 2 });
+    } else res.json(errorWith(1)());
+  } else res.json(errorWith(2)());
 });
 
 /**
@@ -101,15 +101,12 @@ router.delete('/:un', (req, res) => {
 
   Promise.all([
     ldap.del(un),
-    readdir(aliasDir).then(removeAlias),
+    fs.readdir(aliasDir).then(removeAlias),
     unlink(forward).then(() => fs.rmdir(home)),
     mysqlQuery('delete from user where id=?', [un])
   ])
-  .then(() => { success: true })
-  .catch(err => {
-    logError(req, err);
-    return { success: false };
-  })
+  .then(success)
+  .catch(failure)
   .finally(res.json);
 });
 

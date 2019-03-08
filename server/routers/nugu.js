@@ -1,6 +1,6 @@
 const express = require('express');
-const log = require('../log.js');
 const auth = require('../auth.js');
+const { success, successWith, failure, errorWith } = require('../response.js');
 const { mysqlQuery } = require('../db.js');
 
 const router = express.Router();
@@ -30,13 +30,10 @@ router.get('/nugu', (req, res) => {
   mysqlQuery(searchQuery, [un])
   .then(results =>
     (results.length > 0) ?
-    { success: true, obj: results[0] } :
-    { success: false, error: 0 }
+    successWith('obj', results[0])() :
+    errorWith(0)()
   )
-  .catch(err => {
-    log.error(err);
-    return { success: false, error: 1 };
-  })
+  .catch(errorWith(1))
   .finally(res.json);
 });
 
@@ -63,13 +60,10 @@ router.post('/nugu', (req, res) => {
     Promise.all(Object.keys(nobj).map(field =>
       mysqlQuery(updateQuery(field), [nobj[field], un])
     ))
-    .then(() => { success: true })
-    .catch(err => {
-      log.error(err);
-      return { success: false, error: 0 };
-    })
+    .then(success)
+    .catch(errorWith(0))
     .finally(res.json);
-  } else res.json({ success: false, error: 1 });
+  } else res.json(errorWith(1)());
 });
 
 /**
@@ -90,13 +84,10 @@ router.get('/nugu/:name', (req, res) => {
   mysqlQuery(searchQuery, [name])
   .then(objs =>
     (objs.length > 0) ?
-    { success: true, objs } :
-    mysqlQuery(nameQuery, [name]).then(objs => { success: true, objs })
-  })
-  .catch(err => {
-    log.error(err);
-    return { success: false };
-  })
+    successWith('objs', objs)() :
+    mysqlQuery(nameQuery, [name]).then(objs => successWith('objs', objs)())
+  )
+  .catch(failure)
   .finally(res.json);
 });
 

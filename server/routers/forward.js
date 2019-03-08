@@ -1,7 +1,7 @@
 const express = require('express');
 const fs = require('fs').promises;
-const log = require('../log.js');
 const auth = require('../auth.js');
+const { success, failure, successWith } = require('../response.js');
 const { homeDir } = require('../config/config.js');
 
 const router = express.Router();
@@ -21,8 +21,8 @@ router.use(auth.loginOnly);
 router.get('/forward', (req, res) => {
   let path = homeDir + req.session.un + '/.forward';
   fs.readFile(path)
-  .then(data => { success: true, mail: data.toString() })
-  .catch(() => { success: true, mail: '' })
+  .then(data => successWith('mail', data.toString())())
+  .catch(successWith('mail', ''))
   .finally(res.json);
 });
 
@@ -42,11 +42,8 @@ router.post('/forward', (req, res) => {
   let mail = req.body.mail;
   let path = homeDir + req.session.un + '/.forward'
   fs.writeFile(path, mail)
-  .then(() => { success: true })
-  .catch(err => {
-    log.error(req, err);
-    return { success: false };
-  })
+  .then(success)
+  .catch(failure)
   .finally(res.json);
 });
 

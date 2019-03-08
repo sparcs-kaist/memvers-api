@@ -1,9 +1,12 @@
 const express = require('express');
-const log = require('../log.js');
+const nodemailer = require('nodemailer');
+const ldap = require('../ldap.js');
 const { ResetModel } = require('../db.js');
 const { checkPassword } = require('../util.js');
-const transporter = nodemailer.createTransport({host: mailHost, port: mailPort});
+const { success, successWith, failure, errorWith } = require('../response.js');
+const { resetTime, resetLink, mailHost, mailPort, mailTo, mailSubject } = require('../../config.js');
 
+const transporter = nodemailer.createTransport({host: mailHost, port: mailPort});
 const router = express.Router();
 
 function send(mail) {
@@ -41,13 +44,10 @@ router.post('/reset/:un', (req, res) => {
         text: link,
         html: '<a href="' + link + '">Reset password</a>'
       };
-      return send(mail).then(() => { success: true });
-    }) : { success: true }
+      return send(mail).then(success);
+    }) : success()
   )
-  .catch(err => {
-    log.error(req, err);
-    return { success: false };
-  })
+  .catch(failure)
   .finally(res.json);
 });
 
@@ -66,16 +66,13 @@ router.get('/reset/:serial', (req, res) => {
   let serial = decodeURIComponent(req.params.serial);
   ResetModel.findOne({ serial: serial }).exec()
   .then(reset =>
-    !reset ? { success: true, result: false } :
+    !reset ? successWith('result', false)() :
     ((Date.now() - reset.date > resetTime * 60 * 1000) ?
     ResetModel.deleteOne({ serial }).exec()
-    .then(() => { success: true, result: false }) :
-    { success: true, result: true })
-  })
-  .catch(err => {
-    log.error(req, err);
-    return { success: false };
-  })
+    .then(successWith('result', false)) :
+    successWith('result', true)())
+  )
+  .catch(failure)
   .finally(res.json);
 });
 
@@ -100,21 +97,18 @@ router.post('/reset/:serial', (req, res) => {
   ResetModel.findOne({ serial }).exec()
   .then(reset => {
     if (!reset || Date.now() - reset.date > resetTime * 60 * 1000)
-      return { success: false, error: 0 };
+      return errorWith(0)();
     else {
       let un = reset.un;
       let npass = req.body.npass;
       if (checkPassword(npass, un))
         return ResetModel.deleteOne({ serial }).exec()
-          .then(() => ldapPasswdByAdmin(un, npass))
-          .then(() => { success: true });
+          .then(() => ldap.passwdByAdmin(un, npass))
+          .then(success);
       else
-        return { success: false, error: 1 };
+        return errorWith(1)();
     }
   })
-  .catch(err => {
-    log.error(req, err);
-    return { success: false, error: 2 };
-  })
+  .catch(errorWith(2))
   .finally(res.json);
 });

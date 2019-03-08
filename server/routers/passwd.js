@@ -1,7 +1,7 @@
 const express = require('express');
 const ldap = require('../ldap.js');
-const log = require('../log.js');
 const auth = require('../auth.js');
+const { success, errorWith } = require('../response.js');
 const { checkPassword } = require('../util.js');
 
 const router = express.Router();
@@ -31,12 +31,10 @@ router.post('/', (req, res) => {
 
   if (checkPassword(npass, un))
     ldap.passwd(un, opass, npass)
-    .then(() => res.json({ success: true }))
-    .catch(err => {
-      log.error(req, err);
-      res.json({ success: false, error: 0 });
-    });
-  else res.json({ success: false, error: 1 });
+    .then(success)
+    .catch(errorWith(0))
+    .finally(res.json);
+  else res.json(errorWith(1)());
 });
 
 module.exports = router;
