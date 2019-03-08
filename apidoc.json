@@ -1,0 +1,10 @@
+{
+  "name": "SPARCS Memvers",
+  "version": "1.0.0",
+  "description": "SPARCS Memvers API",
+  "title": "SPARCS Memvers API",
+  "url" : "https://memvers-api.sparcs.org",
+  "template" : {
+    "withCompare" : false
+  }
+}
