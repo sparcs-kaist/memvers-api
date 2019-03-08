@@ -1,6 +1,7 @@
 const express = require('express');
 const log = require('../log.js');
 const auth = require('../auth.js');
+const { mysqlQuery } = require('../db.js');
 
 const router = express.Router();
 router.use(auth.loginOnly);
@@ -77,30 +78,24 @@ router.post('/nugu', (req, res) => {
  * @apiGroup Nugu
  * @apiDescription Get 'nugu' data related to a given name
  *
- * @apiParam {String} name URL encoded name for search
+ * @apiParam {String} name A URL encoded name for searching
  *
  * @apiSuccess {Boolean} success Indicate whether succeeded
  * @apiSuccess {Object[]} objs Array of 'nugu' data
- * @apiSuccess {Number} error The reason of the failure (
- * <code>undefined</code> if succeeded;
- * <code>0</code> if database error;
- * <code>1</code> if <code>name</code> is not given)
  *
  * @apiError (Error 401) Unauthorized Not logged in
  */
 router.get('/nugu/:name', (req, res) => {
-  let name = decodeURIComponent(req.body.name);
-  if (name) {
-    mysqlQuery(searchQuery, [name])
-    .then(objs =>
-      (objs.length > 0) ?
-      { success: true, objs } :
-      mysqlQuery(nameQuery, [name]).then(objs => { success: true, objs })
-    })
-    .catch(err => {
-      log.error(err);
-      return { success: false, error: 0 };
-    })
-    .finally(res.json);
-  } else res.json({ success: false, error: 1 });
+  let name = decodeURIComponent(req.params.name);
+  mysqlQuery(searchQuery, [name])
+  .then(objs =>
+    (objs.length > 0) ?
+    { success: true, objs } :
+    mysqlQuery(nameQuery, [name]).then(objs => { success: true, objs })
+  })
+  .catch(err => {
+    log.error(err);
+    return { success: false };
+  })
+  .finally(res.json);
 });

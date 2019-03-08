@@ -13,7 +13,7 @@ router.use(auth.loginOnly);
  * @apiGroup Mailing
  * @apiDescription Create a new mailing list
  *
- * @apiParam {String} name The name of the mailing list
+ * @apiParam {String} name A URL encoded name of the mailing list
  * @apiParam {String} desc A description for the mailing list
  *
  * @apiSuccess {Boolean} success Indicate whether succeeded
@@ -21,13 +21,13 @@ router.use(auth.loginOnly);
  * <code>undefined</code> if succeeded;
  * <code>0</code> if <code>name</code> exists;
  * <code>1</code> if internal server error;
- * <code>2</code> if <code>name</code> or <code>desc</code> is not given)
+ * <code>2</code> if <code>desc</code> is not given)
  *
  * @apiError (Error 401) Unauthorized Not logged in
  */
 router.put('/:name', (req, res) => {
   let un = req.session.un;
-  let m = req.params.name;
+  let m = decodeURIComponent(req.params.name);
   let desc = req.body.desc;
 
   let file = aliasDir + m;
