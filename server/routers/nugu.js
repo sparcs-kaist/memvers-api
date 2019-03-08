@@ -99,3 +99,5 @@ router.get('/nugu/:name', (req, res) => {
   })
   .finally(res.json);
 });
+
+module.exports = router;
