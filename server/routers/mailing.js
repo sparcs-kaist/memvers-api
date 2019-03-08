@@ -76,26 +76,27 @@ router.get('/', (req, res) => {
       .filter(f => f.endsWith('.template'))
       .map(f => f.replace('.template', ''));
 
-    let readAll = suffix =>
-      Promise.all(all.map(f =>
+    function readAll(suffix) {
+      return Promise.all(all.map(f =>
         fs.readFile(aliasDir + f + suffix)
         .then(data => {return {f, data}; })
         .catch(() => {return {f, data: ''}; })
       ));
+    }
 
-    readAll('.info')
-    .then(objs => {
-      let info = {};
-      objs.forEach(obj => info[obj.f] = obj.data.toString());
-
-      readAll('')
+    return readAll('.info')
       .then(objs => {
-        let aliases = objs
-          .filter(obj => obj.data.toString().split('\n').includes(un))
-          .map(obj => obj.f);
-        return { success: true, all: all, info: info, aliases: aliases };
-      })
-    });
+        let info = {};
+        objs.forEach(obj => info[obj.f] = obj.data.toString());
+
+        return readAll('')
+          .then(objs => {
+            let aliases = objs
+              .filter(obj => obj.data.toString().split('\n').includes(un))
+              .map(obj => obj.f);
+            return { success: true, all: all, info: info, aliases: aliases };
+          })
+      });
   })
   .catch(failure)
   .then(json(res))
@@ -111,28 +112,35 @@ router.get('/', (req, res) => {
  * @apiParam {String[]} removed Removed mailing lists
  *
  * @apiSuccess {Boolean} success Indicate whether succeeded
+ * @apiSuccess {Number} error The reason of the failure (
+ * <code>undefined</code> if succeeded;
+ * <code>0</code> if internal server error;
+ * <code>1</code> if <code>added</code> or <code>removed</code> is not given)
  *
  * @apiError (Error 401) Unauthorized Not logged in
  */
 router.post('/', (req, res) => {
   let un = req.session.un;
+  let added = req.body.added;
+  let removed = req.body.removed;
 
-  let addProm = req.body.added.map(m =>
-    fs.writeFile(aliasDir + m, '\n' + un, {flag: 'as'})
-  );
-  let remProm = req.body.removed.map(m =>
-    fs.readFile(aliasDir + m)
-    .then(data => {
-      let uns = data.toString().split('\n');
-      uns.splice(uns.indexOf(un));
-      return fs.writeFile(aliasDir + m, uns.join('\n'), {flag: 'w'});
-    })
-  );
-
-  Promise.all(addProm.concat(remProm))
-  .then(success)
-  .catch(failure)
-  .then(json(res));
+  if (un && added && removed) {
+    let addProm = added.map(m =>
+      fs.writeFile(aliasDir + m, '\n' + un, {flag: 'as'})
+    );
+    let remProm = removed.map(m =>
+      fs.readFile(aliasDir + m)
+      .then(data => {
+        let uns = data.toString().split('\n');
+        uns.splice(uns.indexOf(un));
+        return fs.writeFile(aliasDir + m, uns.join('\n'), {flag: 'w'});
+      })
+    );
+    Promise.all(addProm.concat(remProm))
+    .then(success)
+    .catch(errorWith(0))
+    .then(json(res));
+  } else res.json(errorWith(1)());
 });
 
 module.exports = router;
