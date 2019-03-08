@@ -1,29 +1,27 @@
 const express = require('express');
-const bodyParser = require('body-parser')
-const mongoose = require('mongoose');
-const session = require('express-session');
-const MongoStore = require('connect-mongo')(session);
 const fs = require('fs');
 const nodemailer = require("nodemailer");
-const cors = require('cors');
 const { exec, execSync } = require('child_process');
 
-const { initDB, ResetModel, mysqlQuery } = require('./db.js');
-const { log, logError } = require('./log.js');
+const db = require('./db.js');
+const ResetModel = db.ResetModel;
+function mysqlQuery(q, p, cb) {
+  db.mysqlQuery(q, p)
+  .then(res => cb(undefined, res))
+  .catch(err => cb(err));
+}
+const log = require('./log.js');
+function logError(req, err) {
+  log.error(err);
+}
 
-const { secure, maxAge,
-  aliasDir, aliasFile, homeDir, resetTime, resetLink,
+const { aliasDir, aliasFile, homeDir, resetTime, resetLink,
   mailHost, mailPort, mailTo, mailSubject, ldapHost } = require('../config/config.js');
-const { secret, adminPassword } = require('../config/local_config.js');
+const { adminPassword } = require('../config/local_config.js');
 
 const router = express.Router();
 const transporter = nodemailer.createTransport({host: mailHost, port: mailPort});
 const nuid = parseInt(execSync('id -u nobody', { shell: '/bin/sh' }));
-
-function writeLog(req, res, next) {
-  log(req);
-  next();
-}
 
 function escape(str) {
   return str
@@ -48,21 +46,6 @@ function checkAuth(req, res, next) {
     next();
 }
 
-initDB();
-router.use(session({
-  secret: secret,
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: secure, maxAge: maxAge * 60 * 1000 },
-  store: new MongoStore({ mongooseConnection: mongoose.connection })
-}));
-router.use(cors({
-  origin: ['http://memvers.sparcs.org', 'https://memvers.sparcs.org'],
-  credentials: true,
-  allowedHeaders: ['Content-Type', 'Cookie']
-}));
-router.use(bodyParser.json());
-router.use(writeLog);
 router.use(checkAuth);
 
 router.post('/login', (req, res) => {
@@ -139,7 +122,7 @@ router.post('/create', (req, res) => {
 
 router.get('/forward', (req, res) => {
   let path = homeDir + req.session.un + '/.forward';
-  fs.stat(path, (err, stats) => {
+  fs.stat(path, err => {
     logError(req, err);
     if (err) res.json({ mail: '' });
     else fs.readFile(path, (err, buf) => {
@@ -222,7 +205,7 @@ router.post('/reset', (req, res) => {
 
 router.get('/nugu', (req, res) => {
   let un = req.session.un;
-  mysqlQuery('select * from user where id=?', [un], (err, results, fields) => {
+  mysqlQuery('select * from user where id=?', [un], (err, results) => {
     logError(req, err);
     if (err || results.length === 0)
       res.json({ result: false });
@@ -234,24 +217,24 @@ router.get('/nugu', (req, res) => {
 router.post('/nugu', (req, res) => {
   let un = req.session.un;
   let nobj = req.body.nobj;
-  if (nobj) {
-    function query() {
-      let keys = Object.keys(nobj);
-      if (keys.length > 0) {
-        let field = keys[0];
-        let value = nobj[field];
-        delete nobj[field];
-        mysqlQuery(`update user set ${field}=? where id=?`, [value, un], (err, results) => {
-          logError(req, err);
-          if (err) res.json({ result: false });
-          else query();
-        });
-      } else {
-        res.json({ result: true });
-      }
+
+  function query() {
+    let keys = Object.keys(nobj);
+    if (keys.length > 0) {
+      let field = keys[0];
+      let value = nobj[field];
+      delete nobj[field];
+      mysqlQuery(`update user set ${field}=? where id=?`, [value, un], err => {
+        logError(req, err);
+        if (err) res.json({ result: false });
+        else query();
+      });
+    } else {
+      res.json({ result: true });
     }
-    query();
-  } else res.json({ result: false });
+  }
+  if (nobj) query();
+  else res.json({ result: false });
 });
 
 router.post('/nugus', (req, res) => {
@@ -336,7 +319,7 @@ router.post('/wheel/add', (req, res) => {
   let home = homeDir + un;
   if (checkPassword(_npass, _un)) {
     exec(`ldapsearch -H ${ldapHost} -x -LLL -b "ou=People,dc=sparcs,dc=org" | grep uidNumber:`,
-      { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
+      { shell: '/bin/sh', uid: nuid }, (err, stdout) => {
       logError(req, err);
       let uids = stdout.replace(/uidNumber: /gi, '')
         .split('\n').map(parseInt).filter(i => { return first <= i; })
@@ -369,7 +352,7 @@ router.post('/wheel/add', (req, res) => {
             });
           } else {
             exec(`ldappasswd -H ${ldapHost} -D "cn=admin,dc=sparcs,dc=org" -S -w "${apass}" "uid=${un},ou=People,dc=sparcs,dc=org" -s "${npass}"`,
-              { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
+              { shell: '/bin/sh', uid: nuid }, err => {
               logError(req, err);
               fs.unlink(path, err => {
                 logError(req, err);
