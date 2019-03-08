@@ -1,3 +1,7 @@
 # SPARCS Web Edalias
 * For the initial deployment, use command `$ /bin/bash deploy.sh`.
 * To restart the service after `$ git pull`, use command `$ /bin/bash restart.sh`.
+
+## API Documentation
+* See https://sparcs-kaist.github.io/wedalias/, or
+* clone the repository and open `docs/index.html`.
