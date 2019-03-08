@@ -19,7 +19,7 @@ function send(mail) {
 }
 
 /**
- * @api {post} /reset/:un Request reset
+ * @api {put} /reset/:un Request reset
  * @apiName Reset
  * @apiGroup Reset
  * @apiDescription Send a reset request
@@ -28,7 +28,7 @@ function send(mail) {
  *
  * @apiSuccess {Boolean} success Indicate whether succeeded
  */
-router.post('/reset/:un', (req, res) => {
+router.put('/:un', (req, res) => {
   let un = decodeURIComponent(req.params.un);
   ResetModel.findOne({ un }).exec()
   .then(_reset =>
@@ -44,7 +44,7 @@ router.post('/reset/:un', (req, res) => {
         text: link,
         html: '<a href="' + link + '">Reset password</a>'
       };
-      return send(mail).then(success);
+      return send(mail).then(() => reset.save()).then(success);
     }) : success()
   )
   .catch(failure)
@@ -62,7 +62,7 @@ router.post('/reset/:un', (req, res) => {
  * @apiSuccess {Boolean} success Indicate whether succeeded
  * @apiSuccess {Boolean} result Indicate validity
  */
-router.get('/reset/:serial', (req, res) => {
+router.get('/:serial', (req, res) => {
   let serial = decodeURIComponent(req.params.serial);
   ResetModel.findOne({ serial: serial }).exec()
   .then(reset =>
@@ -92,7 +92,7 @@ router.get('/reset/:serial', (req, res) => {
  * <code>1</code> if <code>npass</code> is weak;
  * <code>2</code> if internal server error)
  */
-router.post('/reset/:serial', (req, res) => {
+router.post('/:serial', (req, res) => {
   let serial = decodeURIComponent(req.params.serial);
   ResetModel.findOne({ serial }).exec()
   .then(reset => {

@@ -54,7 +54,7 @@ function passwdByAdmin(un, npass) {
   let command = 'ldappasswd';
   return new Promise((resolve, reject) => {
     if (un && npass)
-      e([command, host, admin, adminPass, newPassword(npass), '-S'], (err, stdout, stderr) => {
+      e([command, host, admin, adminPass, newPassword(npass), '-S', dnOnly(un)], (err, stdout, stderr) => {
         if (err || stdout.length !== 0 || stderr.length !== 0)
           reject({command, err, stdout, stderr});
         else resolve();
