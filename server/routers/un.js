@@ -5,16 +5,15 @@ const router = express.Router();
 router.use(auth.loginOnly);
 
 /**
- * @api {post} /logout Logout
- * @apiName Logout
+ * @api {get} /un Un
+ * @apiName Un
  * @apiGroup Auth
- * @apiDescription Log out
+ * @apiDescription Get username
+ *
+ * @apiSuccess {String} un Username
  *
  * @apiError (Error 401) Unauthorized Not logged in
  */
-router.post('/', (req, res) => {
-  req.session.destroy();
-  res.json({});
+router.get('/', (req, res) => {
+  res.json({ un: req.session.un });
 });
-
-module.exports = router;

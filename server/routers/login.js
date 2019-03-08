@@ -7,15 +7,15 @@ const router = express.Router();
 /**
  * @api {post} /login Login
  * @apiName Login
- * @apiGroup Login
-
+ * @apiGroup Auth
+ * @apiDescription Log in
+ *
  * @apiParam {String} un Username
  * @apiParam {String} pw Password
-
+ *
  * @apiSuccess {Boolean} result Indicate whether succeeded (not recommanded to use)
  * @apiSuccess {Boolean} success Indicate whether succeeded
  */
-
 router.post('/', (req, res) => {
   let un = req.body.un;
   let pw = req.body.pw;
