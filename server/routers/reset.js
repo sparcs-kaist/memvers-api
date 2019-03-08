@@ -2,6 +2,7 @@ const express = require('express');
 const log = require('../log.js');
 const { ResetModel } = require('../db.js');
 const { checkPassword } = require('../util.js');
+const transporter = nodemailer.createTransport({host: mailHost, port: mailPort});
 
 const router = express.Router();
 

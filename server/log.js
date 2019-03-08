@@ -2,7 +2,7 @@ function str(str) {
   if (str) console.log(new Date().toString() + '\t' + str);
 }
 
-function log(req, _obj) {
+function req(req, _obj) {
   let url = req.originalUrl;
   let _un = req.session.un;
   let un = _un ? _un : '';
@@ -14,4 +14,4 @@ function error(req, err) {
   if (err) log(req, err);
 }
 
-module.exports = { error, str };
+module.exports = { str, req, error };
