@@ -25,7 +25,7 @@ const updateQuery = field => `update user set ${field}=? where id=?`;
  *
  * @apiError (Error 401) Unauthorized Not logged in
  */
-router.get('/nugu', (req, res) => {
+router.get('/', (req, res) => {
   let un = req.session.un;
   mysqlQuery(searchQuery, [un])
   .then(results =>
@@ -53,7 +53,7 @@ router.get('/nugu', (req, res) => {
  *
  * @apiError (Error 401) Unauthorized Not logged in
  */
-router.post('/nugu', (req, res) => {
+router.post('/', (req, res) => {
   let un = req.session.un;
   let nobj = req.body.nobj;
   if (nobj) {
@@ -79,7 +79,7 @@ router.post('/nugu', (req, res) => {
  *
  * @apiError (Error 401) Unauthorized Not logged in
  */
-router.get('/nugu/:name', (req, res) => {
+router.get('/:name', (req, res) => {
   let name = decodeURIComponent(req.params.name);
   mysqlQuery(searchQuery, [name])
   .then(objs =>

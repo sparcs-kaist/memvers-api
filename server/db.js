@@ -30,7 +30,7 @@ const connection = mysql.createConnection({
 
 function initDB() {
   mongoose.connect('mongodb://' + dbHost + '/' + dbName);
-//  connection.connect();
+  connection.connect();
 }
 
 function mysqlQuery(q, ps) {
