@@ -125,18 +125,20 @@ router.post('/', (req, res) => {
   let removed = req.body.removed;
 
   if (un && added && removed) {
-    let addProm = added.map(m =>
-      fs.writeFile(aliasDir + m, '\n' + un, {flag: 'as'})
-    );
-    let remProm = removed.map(m =>
+    let proms = [...new Set(added.concat(removed))].map(m =>
       fs.readFile(aliasDir + m)
       .then(data => {
         let uns = data.toString().split('\n');
-        uns.splice(uns.indexOf(un));
+        let i = -1;
+        while ((i = uns.indexOf(un)) >= 0)
+          uns.splice(i, 1);
+        if (added.includes(m))
+          uns.push(un);
         return fs.writeFile(aliasDir + m, uns.join('\n'), {flag: 'w'});
       })
     );
-    Promise.all(addProm.concat(remProm))
+
+    Promise.all(proms)
     .then(success)
     .catch(errorWith(0))
     .then(json(res));
