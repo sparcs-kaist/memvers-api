@@ -1,5 +1,6 @@
 const express = require('express');
 const fs = require('fs').promises;
+const fse = require('fs-extra');
 const locks = require('locks');
 const ldap = require('../ldap.js');
 const auth = require('../auth.js');
@@ -107,18 +108,12 @@ router.delete('/:un', (req, res) => {
   Promise.all([
     ldap.del(un),
     fs.readdir(aliasDir).then(removeAlias),
-    unlink(forward).then(() => fs.rmdir(home)),
+    fse.remove(home),
     mysqlQuery('delete from user where id=?', [un])
   ])
   .then(success)
   .catch(failure)
   .then(json(res));
 });
-
-function unlink(path) {
-  return fs.stat(path)
-    .then(() => fs.unlink(path))
-    .catch(() => {});
-}
 
 module.exports = router;
