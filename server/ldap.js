@@ -71,7 +71,7 @@ function uids() {
       if (err || stderr.length !== 0)
         reject({command, err, stdout, stderr});
       else
-        resolve(stdout.replace(/uidNumber: /gi, '').split('\n').map(parseInt));
+        resolve(stdout.replace(/uidNumber: /gi, '').split('\n').map(s => parseInt(s.trim())));
     });
   });
 }
