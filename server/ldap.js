@@ -21,6 +21,7 @@ function password(pw) { return `-w "${escape(pw)}"`; }
 function newPassword(pw) { return `-s "${escape(pw)}"`; }
 function file(path) { return `-f "${escape(path)}"`; }
 const adminPass = password(adminPassword);
+const searchSuffix = '-x -LLL -b "ou=People,dc=sparcs,dc=org" | grep uidNumber:';
 
 function e(params, cb) { exec(params.join(' '), opt, cb); }
 
@@ -66,7 +67,7 @@ function passwdByAdmin(un, npass) {
 function uids() {
   let command = 'ldapsearch';
   return new Promise((resolve, reject) => {
-    e([command, host, '-x -LLL -b "ou=People,dc=sparcs,dc=org" | grep uidNumber:'], (err, stdout, stderr) => {
+    e([command, host, admin, adminPass, searchSuffix], (err, stdout, stderr) => {
       if (err || stderr.length !== 0)
         reject({command, err, stdout, stderr});
       else
