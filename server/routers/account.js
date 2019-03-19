@@ -52,13 +52,17 @@ router.put('/:un', (req, res) => {
   if (un && name && npass) {
     if (checkPassword(npass, un)) {
       mutex.lock(() => {
+        let uid = undefined;
         ldap.uids()
-        .then(uids => fs.writeFile(path, ldap.ldif(un, getUid(uids))))
+        .then(uids => {
+          uid = getUid(uids);
+          return fs.writeFile(path, ldap.ldif(un, uid));
+	})
         .then(() => ldap.add(path))
         .then(() => Promise.all([
           ldap.passwdByAdmin(un, npass),
           fs.unlink(path),
-          fs.mkdir(home),
+          fs.mkdir(home).then(() => fs.chown(home, uid, 400)),
           mysqlQuery('insert into user(id, name) values(?, ?)', [un, name])
         ]))
         .then(success)
