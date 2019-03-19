@@ -42,14 +42,14 @@ module.exports = {
   mailHost: '127.0.0.1',
   mailPort: 25,
   mailTo: 'localhost',
-  mailSubject: 'DEV: old.sparcs.org Password Reset',
+  mailSubject: '[DEV] old.sparcs.org Password Reset',
   // session
   secure: false,
   maxAge: 600, // minutes
   // ldap
-  ldapHost: 'ldap://ldap.sparcs.org',
+  ldapHost: 'ldap://ldap-server',
   // db
-  dbHost: '127.0.0.1',
+  dbHost: 'mongodb-server',
   dbName: 'wedalias',
   collectionName: 'reset'
 };
