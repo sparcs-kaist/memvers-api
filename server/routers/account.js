@@ -1,5 +1,6 @@
 const express = require('express');
 const fs = require('fs').promises;
+const locks = require('locks');
 const ldap = require('../ldap.js');
 const auth = require('../auth.js');
 const { success, failure, errorWith, json } = require('../response.js');
@@ -7,6 +8,7 @@ const { mysqlQuery } = require('../db.js');
 const { checkPassword } = require('../util.js');
 const { aliasDir, homeDir } = require('../../config/config.js');
 
+const mutex = locks.createMutex();
 const router = express.Router();
 router.use(auth.wheelOnly);
 
@@ -48,18 +50,21 @@ router.put('/:un', (req, res) => {
 
   if (un && name && npass) {
     if (checkPassword(npass, un)) {
-      ldap.uids()
-      .then(uids => fs.writeFile(path, ldap.ldif(un, getUid(uids))))
-      .then(() => ldap.add(path))
-      .then(() => Promise.all([
-        ldap.passwdByAdmin(un, npass),
-        fs.unlink(path),
-        fs.mkdir(home),
-        mysqlQuery('insert into user(id, name) values(?, ?)', [un, name])
-      ]))
-      .then(success)
-      .catch(errorWith(0))
-      .then(json(res));
+      mutex.lock(() => {
+        ldap.uids()
+        .then(uids => fs.writeFile(path, ldap.ldif(un, getUid(uids))))
+        .then(() => ldap.add(path))
+        .then(() => Promise.all([
+          ldap.passwdByAdmin(un, npass),
+          fs.unlink(path),
+          fs.mkdir(home),
+          mysqlQuery('insert into user(id, name) values(?, ?)', [un, name])
+        ]))
+        .then(success)
+        .catch(errorWith(0))
+        .then(json(res))
+        .then(() => mutex.unlock());
+      });
     } else res.json(errorWith(1)());
   } else res.json(errorWith(2)());
 });
