@@ -6,7 +6,7 @@
 * To restart the service after `$ git pull`, use command `$ /bin/bash restart.sh`.
 
 ## API Documentation
-* See https://sparcs-kaist.github.io/memvers-api/, or
+* See https://docs.memvers-api.sparcs.org, or
 * clone the repository and open `docs/index.html`.
 
 ## External Links
