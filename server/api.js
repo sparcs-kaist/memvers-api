@@ -299,11 +299,28 @@ router.post('/reset/:serial', (req, res) => {
             else if (stdout.length === 0 && stderr.length === 0) res.json({ result: true, succ: true });
             else res.json({ result: true, succ: false });
           });
-        } else res.json({ result: true, succ: false });
+        } else res.json({ result: false, weak: true });
       }
       ResetModel.deleteOne({ serial: serial }, err => { logError(req, err); });
     }
   });
+});
+
+router.post('/wheel/passwd', (req, res) => {
+  let _un = req.body.un;
+  let un = escape(_un);
+  let _npass = req.body.npass;
+  let npass = escape(_npass);
+  let apass = escape(adminPassword);
+  if (checkPassword(_npass, _un)) {
+    exec(`ldappasswd -H ${ldapHost} -D "cn=admin,dc=sparcs,dc=org" -S -w "${apass}" "uid=${un},ou=People,dc=sparcs,dc=org" -s "${npass}"`,
+      { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
+        logError(req, err);
+        if (err) res.json({ result: true, succ: false });
+        else if (stdout.length === 0 && stderr.length === 0) res.json({ result: true, succ: true });
+        else res.json({ result: true, succ: false });
+      });
+  } else res.json({ result: false, weak: true });
 });
 
 router.post('/wheel/add', (req, res) => {
