@@ -19,7 +19,7 @@
     "express-session": "^1.15.6",
     "fs-extra": "^7.0.1",
     "locks": "^0.2.2",
-    "mongoose": "^5.4.14",
+    "mongoose": "^5.7.5",
     "mysql": "^2.16.0",
     "nodemailer": "^5.1.1"
   },
