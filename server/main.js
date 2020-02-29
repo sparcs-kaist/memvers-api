@@ -37,7 +37,7 @@ app.use(writeLog);
 
 app.use('/api', api);
 
-['account', 'forward', 'login', 'logout', 'mailing', 'nugu', 'passwd', 'reset', 'un']
+['account', 'forward', 'login', 'logout', 'mailing', 'nugu', 'passwd', 'reset', 'un', 'users']
   .forEach(r => app.use('/' + r, require('./routers/' + r + '.js')));
 
 app.listen(port, () => {
