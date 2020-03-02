@@ -5,7 +5,7 @@ const { mysqlQuery } = require('../db.js');
 
 const fields = 'id, name, is_developer, is_designer, is_undergraduate, github_id, linkedin_url, behance_url, website';
 const publicQuery = `SELECT ${fields} FROM user WHERE is_private=0 ORDER BY ent_year DESC`;
-const privateQuery = `SELECT ${fields} FROM user ORDER BY ent_year DESC`;
+const privateQuery = `SELECT ${fields}, is_private FROM user ORDER BY ent_year DESC`;
 
 const router = express.Router();
 /**
