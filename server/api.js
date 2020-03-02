@@ -57,7 +57,7 @@ router.post('/login', (req, res) => {
   if (un && pw) {
     exec(`ldapwhoami -H ${ldapHost} -D "uid=${un},ou=People,dc=sparcs,dc=org" -w "${pw}"`,
       { shell: '/bin/sh', uid: nuid }, (err, stdout, stderr) => {
-      logError(req, err);
+      // logError(req, err);
       if (err || stdout.length === 0 || stderr.length !== 0) res.json(fail);
       else {
         req.session.un = _un;
