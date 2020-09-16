@@ -57,7 +57,7 @@ router.put('/:un', (req, res) => {
         .then(uids => {
           uid = getUid(uids);
           return fs.writeFile(path, ldap.ldif(un, uid));
-	})
+        })
         .then(() => ldap.add(path))
         .then(() => Promise.all([
           ldap.passwdByAdmin(un, npass),
