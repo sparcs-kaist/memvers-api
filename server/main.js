@@ -47,7 +47,7 @@ app.use('*', (req, res, next) => {
 app.get('/', () => {
   // This endpoint, which seems useless, is needed to get the CSRF token
   res
-    .status(419)
+    .status(418)
     .json({
       'Server': 'Memvers-API',
       'Developed-By': 'SPARCS'
