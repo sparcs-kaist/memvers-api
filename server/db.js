@@ -29,7 +29,7 @@ const pool = mysql.createPool({
 });
 
 function initDB() {
-  mongoose.connect('mongodb://' + dbHost + '/' + dbName);
+  mongoose.connect('mongodb://' + dbHost + '/' + dbName, { useNewUrlParser: true, useUnifiedTopology: true });
 }
 
 function mysqlQuery(q, ps) {
