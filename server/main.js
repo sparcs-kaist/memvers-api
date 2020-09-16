@@ -1,9 +1,12 @@
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
+const csrf = require('csurf');
 const express = require('express');
-const bodyParser = require('body-parser')
 const mongoose = require('mongoose');
 const session = require('express-session');
+
 const MongoStore = require('connect-mongo')(session);
-const cors = require('cors');
 
 const api = require('./api.js');
 const log = require('./log.js');
@@ -20,6 +23,12 @@ function writeLog(req, res, next) {
 }
 
 initDB();
+app.use(cors({
+  origin: ['http://memvers.sparcs.org', 'https://memvers.sparcs.org'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Cookie', 'CSRF-Token']
+}));
+app.use(cookieParser());
 app.use(session({
   secret: secret,
   resave: false,
@@ -27,14 +36,23 @@ app.use(session({
   cookie: { secure: secure, maxAge: maxAge * 60 * 1000 },
   store: new MongoStore({ mongooseConnection: mongoose.connection })
 }));
-app.use(cors({
-  origin: ['http://memvers.sparcs.org', 'https://memvers.sparcs.org'],
-  credentials: true,
-  allowedHeaders: ['Content-Type', 'Cookie']
-}));
 app.use(bodyParser.json());
 app.use(writeLog);
 
+app.use(csrf());
+app.use('*', (req, res, next) => {
+  res.cookie('csrf-token', req.csrfToken());
+  next();
+});
+app.get('/', () => {
+  // This endpoint, which seems useless, is needed to get the CSRF token
+  res
+    .status(419)
+    .json({
+      'Server': 'Memvers-API',
+      'Developed-By': 'SPARCS'
+    });
+});
 app.use('/api', api);
 
 ['account', 'forward', 'login', 'logout', 'mailing', 'nugu', 'passwd', 'reset', 'un', 'users']
