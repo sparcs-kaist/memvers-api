@@ -14,28 +14,33 @@ function req(req, _obj) {
   str(`${method}\t${url}\t${un}\t${obj}`);
 }
 
+const isProd = (process.env.NODE_ENV || 'development') !== 'development';
+
 function error(err) {
   if (err) {
     /* eslint-disable no-console */
-    console.log(new Date().toString());
+    console.log('====== START OF ERROR REPORT ======');
+    console.log(`Error at ${new Date().toString()}`);
+
     if(err && typeof err === 'object') {
-      if (err.command) {
+      let errorStr = '';
+
+      if (err.command && isProd) {
         // To prevent plain password being logged for failed ldap commands
-        let errorStr = `Error while executing ${err.command}`;
+        errorStr += `\nwhile executing ${err.command}`;
 
         if (err.stdout) errorStr += `\nstdout: ${err.stdout}`;
         if (err.stderr) errorStr += `\nstderr: ${err.stderr}`;
-        if (err.err) {
-          err.err.message = errorStr;
-          console.log(err.err);
-          return;
-        }
 
         console.log(errorStr);
         return;
       }
+
+      console.log(errorStr);
     }
+
     console.log(err);
+    console.log('====== END OF ERROR REPORT ======');
     /* eslint-enable no-console */
   }
 }
