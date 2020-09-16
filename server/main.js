@@ -53,7 +53,6 @@ app.get('/', () => {
       'Developed-By': 'SPARCS'
     });
 });
-app.use('/api', api);
 
 ['account', 'forward', 'login', 'logout', 'mailing', 'nugu', 'passwd', 'reset', 'un', 'users']
   .forEach(r => app.use('/' + r, require('./routers/' + r + '.js')));
