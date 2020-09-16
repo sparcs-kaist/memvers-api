@@ -8,7 +8,6 @@ const session = require('express-session');
 
 const MongoStore = require('connect-mongo')(session);
 
-const api = require('./api.js');
 const log = require('./log.js');
 const { initDB } = require('./db.js');
 
@@ -39,12 +38,16 @@ app.use(session({
 app.use(bodyParser.json());
 app.use(writeLog);
 
+// Login should work without CSRF, because sparcs.org uses it to refresh users
+app.use('/login', require('./routers/login.js'));
+
 app.use(csrf());
 app.use('*', (req, res, next) => {
   res.cookie('csrf-token', req.csrfToken());
   next();
 });
-app.get('/', () => {
+
+app.get('/', (req, res) => {
   // This endpoint, which seems useless, is needed to get the CSRF token
   res
     .status(418)
@@ -54,7 +57,7 @@ app.get('/', () => {
     });
 });
 
-['account', 'forward', 'login', 'logout', 'mailing', 'nugu', 'passwd', 'reset', 'un', 'users']
+['account', 'forward', 'logout', 'mailing', 'nugu', 'passwd', 'reset', 'un', 'users']
   .forEach(r => app.use('/' + r, require('./routers/' + r + '.js')));
 
 app.listen(port, () => {
