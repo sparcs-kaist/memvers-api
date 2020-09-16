@@ -23,7 +23,8 @@ router.post('/', (req, res) => {
     req.session.un = un;
     return success();
   })
-  .catch(failure)
+  // To disable password being logged
+  .catch(() => failure(`Login failed for user ${un}`))
   .then(json(res));
 });
 
