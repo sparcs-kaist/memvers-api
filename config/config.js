@@ -5,6 +5,7 @@ const defaultConfig = (process.env.NODE_ENV === 'production') ?
     port: 80,
     // mailing list
     aliasDir: '/SPARCS/mail/aliases.d/',
+    aliasWriteDir: '/SPARCS/mail/aliases.d/',
     aliasFile: '/etc/aliases',
     // forwarding
     homeDir: '/home/',
@@ -30,6 +31,7 @@ const defaultConfig = (process.env.NODE_ENV === 'production') ?
     port: 80,
     // mailing list
     aliasDir: '/SPARCS/mail/aliases.d/',
+    aliasWriteDir: '/SPARCS/mail/aliases.d/',
     aliasFile: '/etc/aliases',
     // forwarding
     homeDir: '/home/',

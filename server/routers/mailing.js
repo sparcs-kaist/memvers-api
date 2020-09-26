@@ -2,7 +2,7 @@ const express = require('express');
 const fs = require('fs').promises;
 const { success, failure, errorWith, json } = require('../response.js');
 const auth = require('../auth.js');
-const { aliasDir, aliasFile } = require('../../config/config.js');
+const { aliasDir, aliasWriteDir, aliasFile } = require('../../config/config.js');
 
 const router = express.Router();
 router.use(auth.loginOnly);
@@ -36,7 +36,7 @@ router.put('/:name', (req, res) => {
 
   let uns = 'mail-archive\n\n' + un;
   let info = (new Date()).toISOString().substring(0, 10) + ', by ' + un + ', ' + desc;
-  let alias = '\n' + `${m}: :include:${aliasDir}${m}`;
+  let alias = '\n' + `${m}: :include:${aliasWriteDir}${m}`;
 
   if (un && m && desc) {
     fs.stat(file)
