@@ -1,6 +1,5 @@
 const { exec, execSync } = require('child_process');
-const { ldapHost } = require('../config/config.js');
-const { adminPassword } = require('../config/local_config.js');
+const { adminPassword, ldapHost } = require('../config/config.js');
 
 const shell = '/bin/sh';
 const uid = parseInt(execSync('id -u nobody', { shell }));

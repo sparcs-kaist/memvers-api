@@ -11,8 +11,7 @@ const MongoStore = require('connect-mongo')(session);
 const log = require('./log.js');
 const { initDB } = require('./db.js');
 
-const { port, secure, maxAge } = require('../config/config.js');
-const { secret } = require('../config/local_config.js');
+const { port, secure, maxAge, secret } = require('../config/config.js');
 
 const app = express();
 

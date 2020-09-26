@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
 const mysql = require('mysql');
 const Schema = mongoose.Schema;
-const { resetLength, dbHost, dbName, collectionName } = require('../config/config.js');
-const { mysqlHost, mysqlName, mysqlUser, mysqlPassword } = require('../config/local_config.js');
+const {
+  resetLength, dbHost, dbName, collectionName,
+  mysqlHost, mysqlName, mysqlUser, mysqlPassword
+} = require('../config/config.js');
 
 function randChar() {
   return String.fromCharCode(97 + Math.floor(Math.random() * 26));
