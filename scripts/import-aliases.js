@@ -1,18 +1,17 @@
 const { aliasDir, aliasWriteDir, aliasFile } = require('../config/config.js');
-const { sequelize, ForwardList, MailingList } = require('../server/alias.js');
+const { sequelize, ForwardList, MailingList } = require('../server/db.js');
 
 const fs = require('fs');
 
 (async () => {
-  const isDryRun = process.argv[2] === 'dry-run' ?
-    true :
-    (
-      process.argv[2] === 'exec' ?
-      false :
-      (
-        return console.log("Err: Unknown method\nUsage: node scripts/import-aliases.js [dry-run | exec]")
-      )
-    );
+  const isDryRun = process.argv[2] === 'dry-run';
+  
+  if (process.argv[2] !== 'exec' && !isDryRun) {
+    console.log("Err: Unknown method\nUsage: node scripts/import-aliases.js [dry-run | exec]");
+    return;
+  }
+  
+  await sequelize.sync();
 
   const aliasDirList = await fs.promises.readdir(aliasDir);
   const aliasContentRaw = await fs.promises.readFile(aliasFile, 'utf8');

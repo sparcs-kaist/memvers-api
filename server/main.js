@@ -9,7 +9,7 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 
 const log = require('./log.js');
-const { initDB } = require('./db.js');
+const { initDB, initMailserverDB } = require('./db.js');
 
 const { port, secure, maxAge, secret } = require('../config/config.js');
 
@@ -20,7 +20,7 @@ function writeLog(req, res, next) {
   next();
 }
 
-initDB();
+await initDB();
 app.use(cors({
   origin: ['http://memvers.sparcs.org', 'https://memvers.sparcs.org'],
   credentials: true,
@@ -59,7 +59,9 @@ app.get('/', (req, res) => {
 ['account', 'forward', 'logout', 'mailing', 'nugu', 'passwd', 'reset', 'un', 'users']
   .forEach(r => app.use('/' + r, require('./routers/' + r + '.js')));
 
-app.listen(port, () => {
+
+initMailserverDB()
+.then(() => app.listen(port, () => {
   log.str(process.env.NODE_ENV);
   log.str('The server running at port ' + port);
-});
+}));

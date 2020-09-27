@@ -3,7 +3,7 @@ const express = require('express');
 const fs = require('fs').promises;
 const { success, successWith, errorWith, failure, json } = require('../response.js');
 
-const { sequelize, ForwardList, MailingList } = require('../alias.js');
+const { sequelize, ForwardList, MailingList } = require('../db.js');
 
 const router = express.Router();
 router.use(auth.loginOnly);

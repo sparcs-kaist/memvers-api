@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
 const mysql = require('mysql');
 const Schema = mongoose.Schema;
+const { Sequelize, Model, DataTypes } = require('sequelize');
 const {
   resetLength, dbHost, dbName, collectionName,
+  mailDbUrl,
   mysqlHost, mysqlName, mysqlUser, mysqlPassword
 } = require('../config/config.js');
 
@@ -16,6 +18,7 @@ function randStr() {
   return s;
 }
 
+// Memvers Own DB
 const resetSchema = new Schema({
   un: { type: String },
   serial: { type: String, default: randStr },
@@ -23,6 +26,31 @@ const resetSchema = new Schema({
 });
 const ResetModel = mongoose.model(collectionName, resetSchema);
 
+// Mailserver DB
+const sequelize = new Sequelize(mailDbUrl);
+class MailingList extends Model {}
+MailingList.init({
+  id: {
+    type: DataTypes.STRING(255),
+    primaryKey: true
+  },
+  description: DataTypes.TEXT,
+  owner: DataTypes.STRING(64),
+  shown: DataTypes.BOOLEAN
+});
+
+class ForwardList extends Model {}
+ForwardList.init({
+  to: DataTypes.STRING(64),
+  from: DataTypes.STRING(255)
+}, {
+  indexes: [
+    { fields: ['from'] },
+    { fields: ['to'] }
+  ]
+});
+
+// Nugu DB
 const pool = mysql.createPool({
   host: mysqlHost,
   database: mysqlName,
@@ -34,6 +62,10 @@ function initDB() {
   mongoose.connect('mongodb://' + dbHost + '/' + dbName, { useNewUrlParser: true, useUnifiedTopology: true });
 }
 
+async function initMailserverDB() {
+  await sequelize.sync();
+}
+
 function mysqlQuery(q, ps) {
   return new Promise((resolve, reject) =>
     pool.query(q, ps, (err, res) => {
@@ -43,4 +75,12 @@ function mysqlQuery(q, ps) {
   );
 }
 
-module.exports = { initDB, ResetModel, mysqlQuery };
+module.exports = {
+  initDB,
+  initMailserverDB,
+  ResetModel,
+  MailingList,
+  ForwardList,
+  sequelize,
+  mysqlQuery
+};
