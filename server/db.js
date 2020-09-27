@@ -37,7 +37,7 @@ MailingList.init({
   description: DataTypes.TEXT,
   owner: DataTypes.STRING(64),
   shown: DataTypes.BOOLEAN
-});
+}, { sequelize });
 
 class ForwardList extends Model {}
 ForwardList.init({
@@ -47,7 +47,9 @@ ForwardList.init({
   indexes: [
     { fields: ['from'] },
     { fields: ['to'] }
-  ]
+  ],
+  sequelize,
+  tableName: 'forwards'
 });
 
 // Nugu DB

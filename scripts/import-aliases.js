@@ -11,7 +11,7 @@ const fs = require('fs');
     return;
   }
   
-  await sequelize.sync();
+  if (!isDryRun) await sequelize.sync();
 
   const aliasDirList = await fs.promises.readdir(aliasDir);
   const aliasContentRaw = await fs.promises.readFile(aliasFile, 'utf8');
@@ -19,7 +19,7 @@ const fs = require('fs');
 
   for (const line of aliasContentRaw.split(/\r?\n/)) {
     const aliasMatch = line.match(/^([a-z0-9-]+):(.*)$/);
-    if(!aliasMatch) return null;
+    if(!aliasMatch) continue;
 
     aliasContent.push(aliasMatch.slice(1));
   }
@@ -31,11 +31,17 @@ const fs = require('fs');
     const listParsed = listRaw.trim().split(',');
     for (const list of listParsed) {
       if (list.startsWith(':include:')) {
-        const includeContent = await fs.promises.readFile(list, 'utf8');
-        const includeUsers = list.split(/\r?\n/).map(v => v.trim()).filter(v => v && !v.startsWith('#'));
+        const listFile = list.replace(/^:include:/, '');
+        try {
+          const includeContent = await fs.promises.readFile(listFile, 'utf8');
+          const includeUsers = includeContent.split(/\r?\n/).map(v => v.trim()).filter(v => v && !v.startsWith('#'));
 
-        users.push(...includeContent);
-        continue;
+          users.push(...includeUsers);
+          continue;
+        } catch(err) {
+          console.log(`${name}: Failed to open include: ${listFile}`);
+          continue;
+        }
       }
 
       users.push(list);
@@ -51,6 +57,7 @@ const fs = require('fs');
     if (isDryRun) {
       console.log(`Dry Run: ${name}`);
       console.log(users.join('\n'));
+      console.log();
       continue;
     }
 

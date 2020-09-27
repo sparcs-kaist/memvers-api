@@ -34,7 +34,7 @@ router.put('/:name', (req, res) => {
   const listName = decodeURIComponent(req.params.name);
   const description = req.body.desc;
 
-  if (!descriptions) {
+  if (!description) {
     res.json(errorWith(2)());
     return;
   }
@@ -49,7 +49,7 @@ router.put('/:name', (req, res) => {
     try {
       await MailingList.create({
           id: listName,
-          description: `${(new Date()).toISOString().substring(0, 10)}, by ${un}, ${description}`
+          description: `${(new Date()).toISOString().substring(0, 10)}, by ${un}, ${description}`,
           owner: un,
           shown: true
         }, { transaction });
@@ -108,7 +108,7 @@ router.get('/', (req, res) => {
       where: {
         to: un
       }
-    })).map(list => list.id);
+    })).map(list => list.from);
 
     return successWith('all', all, 'info', info, 'aliases', aliases)();
   })()
@@ -143,8 +143,8 @@ router.post('/', (req, res) => {
     return;
   }
 
-  const transaction = await sequelize.transaction();
   (async () => {
+    const transaction = await sequelize.transaction();
     try {
       for (const listName of added) {
         const list = await MailingList.findOne({
@@ -159,10 +159,13 @@ router.post('/', (req, res) => {
           return false;
         }
 
-        await ForwardList.create({
-          from: listName,
-          to: un
-        }, { transaction });
+        await ForwardList.findOrCreate({
+          where: {
+            from: listName,
+            to: un
+          },
+          transaction
+        });
       }
 
       for (const listName of removed) {

@@ -20,7 +20,7 @@ function writeLog(req, res, next) {
   next();
 }
 
-await initDB();
+initDB();
 app.use(cors({
   origin: ['http://memvers.sparcs.org', 'https://memvers.sparcs.org'],
   credentials: true,
