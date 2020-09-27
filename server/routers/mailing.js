@@ -1,8 +1,9 @@
+const auth = require('../auth.js');
 const express = require('express');
 const fs = require('fs').promises;
-const { success, failure, errorWith, json } = require('../response.js');
-const auth = require('../auth.js');
-const { aliasDir, aliasWriteDir, aliasFile } = require('../../config/config.js');
+const { success, successWith, errorWith, failure, json } = require('../response.js');
+
+const { sequelize, ForwardList, MailingList } = require('../alias.js');
 
 const router = express.Router();
 router.use(auth.loginOnly);
@@ -21,37 +22,57 @@ router.use(auth.loginOnly);
  * <code>undefined</code> if succeeded;
  * <code>0</code> if <code>name</code> exists;
  * <code>1</code> if internal server error;
- * <code>2</code> if <code>desc</code> is not given)
+ * <code>2</code> if <code>desc</code> is not given;
+ * <code>3</code> if <code>name</code> is invalid)
  *
  * @apiError (Error 401) Unauthorized Not logged in
  */
+
+const listRegex = /^[a-zA-Z0-9-_]{2,}$/g;
 router.put('/:name', (req, res) => {
-  let un = req.session.un;
-  let m = decodeURIComponent(req.params.name);
-  let desc = req.body.desc;
+  const un = req.session.un;
+  const listName = decodeURIComponent(req.params.name);
+  const description = req.body.desc;
 
-  let file = aliasDir + m;
-  let tfile = file + '.template';
-  let ifile = file + '.info';
+  if (!descriptions) {
+    res.json(errorWith(2)());
+    return;
+  }
 
-  let uns = 'mail-archive\n\n' + un;
-  let info = (new Date()).toISOString().substring(0, 10) + ', by ' + un + ', ' + desc;
-  let alias = '\n' + `${m}: :include:${aliasWriteDir}${m}`;
+  if (!listRegex.test(listName)) {
+    res.json(errorWith(3)());
+    return;
+  }
 
-  if (un && m && desc) {
-    fs.stat(file)
-    .then(errorWith(0))
-    .catch(() =>
-      Promise.all([
-        fs.writeFile(file, uns),
-        fs.writeFile(tfile, uns),
-        fs.writeFile(ifile, info),
-        fs.writeFile(aliasFile, alias, {flag: 'as'}),
-      ])
-      .then(success)
-      .catch(errorWith(1))
-    ).then(json(res))
-  } else res.json(errorWith(2)());
+  (async () => {
+    const transaction = await sequelize.transaction();
+    try {
+      await MailingList.create({
+          id: listName,
+          description: `${(new Date()).toISOString().substring(0, 10)}, by ${un}, ${description}`
+          owner: un,
+          shown: true
+        }, { transaction });
+
+      await ForwardList.create({
+        from: listName,
+        to: 'mail-archive'
+      }, { transaction });
+
+      await ForwardList.create({
+        from: listName,
+        to: un
+      }, { transaction });
+
+      transaction.commit();
+    } catch(err) {
+      await transaction.rollback();
+      throw err;
+    }
+  })()
+  .then(success)
+  .catch(errorWith(1))
+  .then(json(res));
 });
 
 /**
@@ -68,38 +89,31 @@ router.put('/:name', (req, res) => {
  * @apiError (Error 401) Unauthorized Not logged in
  */
 router.get('/', (req, res) => {
-  let un = req.session.un;
+  const un = req.session.un;
 
-  fs.readdir(aliasDir)
-  .then(files => {
-    let all = files
-      .filter(f => f.endsWith('.template'))
-      .map(f => f.replace('.template', ''));
+  (async () => {
+    const lists = await MailingList.findAll({
+      where: {
+        shown: true
+      }
+    });
 
-    function readAll(suffix) {
-      return Promise.all(all.map(f =>
-        fs.readFile(aliasDir + f + suffix)
-        .then(data => {return {f, data}; })
-        .catch(() => {return {f, data: ''}; })
-      ));
-    }
+    const all = lists.map(list => list.id);
+    const info = lists.reduce((objects, { id, description }) => {
+      objects[id] = description;
+      return objects;
+    }, Object.create(null));
 
-    return readAll('.info')
-      .then(objs => {
-        let info = {};
-        objs.forEach(obj => info[obj.f] = obj.data.toString());
+    const aliases = (await ForwardList.findAll({
+      where: {
+        to: un
+      }
+    })).map(list => list.id);
 
-        return readAll('')
-          .then(objs => {
-            let aliases = objs
-              .filter(obj => obj.data.toString().split('\n').includes(un))
-              .map(obj => obj.f);
-            return { success: true, all: all, info: info, aliases: aliases };
-          })
-      });
-  })
+    return successWith('all', all, 'info', info, 'aliases', aliases)();
+  })()
   .catch(failure)
-  .then(json(res))
+  .then(json(res));
 });
 
 /**
@@ -115,34 +129,69 @@ router.get('/', (req, res) => {
  * @apiSuccess {Number} error The reason of the failure (
  * <code>undefined</code> if succeeded;
  * <code>0</code> if internal server error;
- * <code>1</code> if <code>added</code> or <code>removed</code> is not given)
+ * <code>1</code> if <code>added</code> or <code>removed</code> is not given;
+ * <code>2</code> if mailing list not found)
  *
  * @apiError (Error 401) Unauthorized Not logged in
  */
 router.post('/', (req, res) => {
-  let un = req.session.un;
-  let added = req.body.added;
-  let removed = req.body.removed;
+  const un = req.session.un;
+  const { added, removed } = req.body;
 
-  if (un && added && removed) {
-    let proms = [...new Set(added.concat(removed))].map(m =>
-      fs.readFile(aliasDir + m)
-      .then(data => {
-        let uns = data.toString().split('\n');
-        let i = -1;
-        while ((i = uns.indexOf(un)) >= 0)
-          uns.splice(i, 1);
-        if (added.includes(m))
-          uns.push(un);
-        return fs.writeFile(aliasDir + m, uns.join('\n'), {flag: 'w'});
-      })
-    );
+  if(!added || !removed) {
+    res.json(errorWith(1));
+    return;
+  }
 
-    Promise.all(proms)
-    .then(success)
-    .catch(errorWith(0))
-    .then(json(res));
-  } else res.json(errorWith(1)());
+  const transaction = await sequelize.transaction();
+  (async () => {
+    try {
+      for (const listName of added) {
+        const list = await MailingList.findOne({
+          where: {
+            id: listName
+          },
+          transaction
+        });
+
+        if(!list) {
+          await transaction.rollback();
+          return false;
+        }
+
+        await ForwardList.create({
+          from: listName,
+          to: un
+        }, { transaction });
+      }
+
+      for (const listName of removed) {
+        await ForwardList.destroy({
+          where: {
+            from: listName,
+            to: un
+          },
+
+          transaction
+        });
+      }
+
+      await transaction.commit();
+      return true;
+    } catch(err) {
+      await transaction.rollback();
+      throw err;
+    }
+  })()
+  .then(isSuccess => {
+    if (isSuccess) {
+      return success();
+    }
+
+    return errorWith(2)();
+  })
+  .catch(errorWith(0))
+  .then(json(res));
 });
 
 module.exports = router;
