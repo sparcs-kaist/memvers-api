@@ -99,7 +99,7 @@ router.get('/', (req, res) => {
       order: [
         ['id', 'desc']
       ],
-      attributes: [ 'id', 'dscription' ]
+      attributes: [ 'id', 'description' ]
     });
 
     const all = lists.map(list => list.id);
