@@ -30,6 +30,7 @@ const fs = require('fs');
     const users = [];
     const listParsed = listRaw.trim().split(',');
     for (const list of listParsed) {
+      if (!list.trim()) continue;
       if (list.startsWith(':include:')) {
         const listFile = list.replace(/^:include:/, '');
         try {
@@ -77,6 +78,7 @@ const fs = require('fs');
         }, { transaction });
       }
 
+      await transaction.commit();
       console.log(`Imported ${name} with ${users.length} users`);
     } catch(err) {
       await transaction.rollback();
