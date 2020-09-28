@@ -108,12 +108,14 @@ function ldif(un, uid) {
     'objectClass: posixAccount',
     'objectClass: top',
     'objectClass: shadowAccount',
+    'objectClass: postfixAccount',
     'shadowMax: 99999',
     'shadowWarning: 7',
     'loginShell: /bin/bash',
     `uidNumber: ${uid}`,
     'gidNumber: 400',
-    `homeDirectory: /home/${un}`
+    `homeDirectory: /home/${un}`,
+    `mail: ${un}@sparcs.org`
   ].join('\n');
 }
 
