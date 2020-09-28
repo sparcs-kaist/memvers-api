@@ -97,7 +97,7 @@ router.get('/', (req, res) => {
         shown: true
       },
       order: [
-        ['id', 'desc']
+        ['id', 'asc']
       ],
       attributes: [ 'id', 'description' ]
     });

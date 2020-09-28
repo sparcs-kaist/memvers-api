@@ -42,7 +42,7 @@ app.use('/login', require('./routers/login.js'));
 
 app.use(csrf());
 app.use('*', (req, res, next) => {
-  res.cookie('csrf-token', req.csrfToken());
+  res.cookie('csrf-token', req.csrfToken(), { domain: '.sparcs.org' });
   next();
 });
 
