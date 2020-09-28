@@ -50,7 +50,7 @@ const fs = require('fs');
 
     let description = '';
     try {
-      description = await fs.promises.readFile(`${name}.info`, 'utf8');
+      description = await fs.promises.readFile(path.join(aliasWriteDir, `${name}.info`), 'utf8');
     } catch(err) {}
 
     const shown = aliasDirList.includes(`${name}.template`);
@@ -64,7 +64,7 @@ const fs = require('fs');
 
     const transaction = await sequelize.transaction();
     try {
-      await MailingList.create({
+      await MailingList.upsert({
           id: name,
           description,
           owner: 'wheel',
@@ -72,10 +72,13 @@ const fs = require('fs');
         }, { transaction });
 
       for (const user of users) {
-        await ForwardList.create({
-          from: name,
-          to: user
-        }, { transaction });
+        await ForwardList.findOrCreate({
+          where: {
+            from: name,
+            to: user
+          },
+          transaction
+        });
       }
 
       await transaction.commit();
