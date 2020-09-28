@@ -95,7 +95,11 @@ router.get('/', (req, res) => {
     const lists = await MailingList.findAll({
       where: {
         shown: true
-      }
+      },
+      order: [
+        ['id', 'desc']
+      ],
+      attributes: [ 'id', 'dscription' ]
     });
 
     const all = lists.map(list => list.id);
