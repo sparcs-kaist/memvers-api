@@ -252,7 +252,7 @@ router.get('/:name', (req, res) => {
     return successWith(
       'id', list.id,
       'desc', list.description,
-      'isHidden', list.shown,
+      'isHidden', !list.shown,
       'users', users
     )();
   })()
@@ -302,7 +302,7 @@ router.post('/:name', (req, res) => {
       }
 
       if (typeof req.body.isHidden === 'boolean') {
-        list.shown = req.body.isHidden;
+        list.shown = !req.body.isHidden;
       }
 
       await list.save({ transaction });
