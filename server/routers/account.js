@@ -67,7 +67,7 @@ router.put('/:un', (req, res) => {
           mysqlQuery('insert into user(id, name) values(?, ?)', [un, name]),
           ForwardList.create({
             from: 'sparcs',
-            to: 'un'
+            to: un
           })
         ]))
         .then(success)
@@ -95,28 +95,8 @@ router.put('/:un', (req, res) => {
 router.delete('/:un', (req, res) => {
   let un = decodeURIComponent(req.params.un);
 
-  let home = homeDir + un;
-  let forward = home + '/.forward'
-
-  function removeAlias(files) {
-    return Promise.all(
-      files
-      .filter(f => f.endsWith('.template'))
-      .map(f => {
-        let m = f.replace('.template', '');
-        return fs.readFile(aliasDir + m)
-        .then(data => {
-          let uns = data.toString().split('\n');
-          uns.splice(uns.indexOf(un));
-          return fs.writeFile(aliasDir + m, uns.join('\n'));
-        });
-      })
-    );
-  }
-
   Promise.all([
     ldap.del(un),
-    fs.readdir(aliasDir).then(removeAlias),
     fse.remove(home),
     mysqlQuery('delete from user where id=?', [un]),
     ForwardList.destroy({
