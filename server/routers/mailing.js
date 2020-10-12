@@ -365,6 +365,7 @@ router.delete('/:name', (req, res) => {
         where: {
           id: listName
         },
+
         transaction
       });
 
@@ -382,7 +383,7 @@ router.delete('/:name', (req, res) => {
 
     await transaction.commit();
     return success();
-  })
+  })()
   .catch(errorWith(0))
   .then(json(res));
 });
