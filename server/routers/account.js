@@ -8,6 +8,7 @@ const { success, failure, errorWith, json } = require('../response.js');
 const { mysqlQuery } = require('../db.js');
 const { checkPassword } = require('../util.js');
 const { aliasDir, homeDir } = require('../../config/config.js');
+const { ForwardList, MailingList } = require('../db.js');
 
 const mutex = locks.createMutex();
 const router = express.Router();
@@ -63,7 +64,11 @@ router.put('/:un', (req, res) => {
           ldap.passwdByAdmin(un, npass),
           fs.unlink(path),
           fs.mkdir(home).then(() => fs.chown(home, uid, 400)),
-          mysqlQuery('insert into user(id, name) values(?, ?)', [un, name])
+          mysqlQuery('insert into user(id, name) values(?, ?)', [un, name]),
+          ForwardList.create({
+            from: 'sparcs',
+            to: un
+          })
         ]))
         .then(success)
         .catch(errorWith(0))
@@ -90,30 +95,15 @@ router.put('/:un', (req, res) => {
 router.delete('/:un', (req, res) => {
   let un = decodeURIComponent(req.params.un);
 
-  let home = homeDir + un;
-  let forward = home + '/.forward'
-
-  function removeAlias(files) {
-    return Promise.all(
-      files
-      .filter(f => f.endsWith('.template'))
-      .map(f => {
-        let m = f.replace('.template', '');
-        return fs.readFile(aliasDir + m)
-        .then(data => {
-          let uns = data.toString().split('\n');
-          uns.splice(uns.indexOf(un));
-          return fs.writeFile(aliasDir + m, uns.join('\n'));
-        });
-      })
-    );
-  }
-
   Promise.all([
     ldap.del(un),
-    fs.readdir(aliasDir).then(removeAlias),
     fse.remove(home),
-    mysqlQuery('delete from user where id=?', [un])
+    mysqlQuery('delete from user where id=?', [un]),
+    ForwardList.destroy({
+      where: {
+        to: un
+      }
+    })
   ])
   .then(success)
   .catch(failure)
