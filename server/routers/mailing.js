@@ -82,8 +82,7 @@ router.put('/:name', (req, res) => {
  * @apiDescription Get a list of aliases
  *
  * @apiSuccess {Boolean} success Indicate whether succeeded
- * @apiSuccess {String[]} all A complete list of mailing lists
- * @apiSuccess {Object} info A mapping from mailing lists to their descriptions
+ * @apiSuccess {Object[]} all A complete list of mailing lists, containing id and desc
  * @apiSuccess {String[]} aliases A list of mailing lists, whom the user subscribed
  *
  * @apiError (Error 401) Unauthorized Not logged in
@@ -91,22 +90,19 @@ router.put('/:name', (req, res) => {
 router.get('/', (req, res) => {
   const un = req.session.un;
 
+  const query = {};
+  if (un !== 'wheel') query.shown = true;
+
   (async () => {
     const lists = await MailingList.findAll({
-      where: {
-        shown: true
-      },
+      where: query,
       order: [
         ['id', 'asc']
       ],
       attributes: [ 'id', 'description' ]
     });
 
-    const all = lists.map(list => list.id);
-    const info = lists.reduce((objects, { id, description }) => {
-      objects[id] = description;
-      return objects;
-    }, Object.create(null));
+    const all = lists.map(({ id, desc: description }) => ({ id, desc }));
 
     const aliases = (await ForwardList.findAll({
       where: {
@@ -114,7 +110,7 @@ router.get('/', (req, res) => {
       }
     })).map(list => list.from);
 
-    return successWith('all', all, 'info', info, 'aliases', aliases)();
+    return successWith('all', all, 'aliases', aliases)();
   })()
   .catch(failure)
   .then(json(res));
@@ -142,7 +138,7 @@ router.post('/', (req, res) => {
   const un = req.session.un;
   const { added, removed } = req.body;
 
-  if(!added || !removed) {
+  if(!Array.isArray(added) || !Array.isArray(removed)) {
     res.json(errorWith(1));
     return;
   }
@@ -196,6 +192,170 @@ router.post('/', (req, res) => {
     }
 
     return errorWith(2)();
+  })
+  .catch(errorWith(0))
+  .then(json(res));
+});
+
+router.use(auth.wheelOnly);
+
+/**
+ * @api {Get} /mailing/:name Get subscribed user of a mailing list
+ * @apiName Aliases
+ * @apiGroup Mailing
+ * @apiDescription Get subscribed user of a mailing list
+ *
+ * @apiSuccess {String} id Name of the mailing list
+ * @apiSuccess {String} desc Description of the mailing list
+ * @apiSuccess {String[]} users A list of subscribed users
+ *
+ * @apiSuccess {Boolean} success Indicate whether succeeded
+ * @apiSuccess {Number} error The reason of the failure (
+ * <code>undefined</code> if succeeded;
+ * <code>0</code> if internal server error;
+ * <code>1</code> if mailing list not found)
+ *
+ * @apiError (Error 401) Unauthorized Not logged in
+ */
+router.get('/:name', (req, res) => {
+  const listName = req.params.name;
+
+  (async () => {
+    const list = await MailingList.findOne({
+      where: {
+        id: listName
+      }
+    });
+
+    if (!list) return errorWith(1)();
+
+    const users = (await ForwardList.findAll({
+      where: {
+        from: listName
+      }
+    })).map(fwd => fwd.to);
+
+    return successWith('id', list.id, 'desc', list.desc, 'users', users)();
+  })()
+  .catch(errorWith(0))
+  .then(json(res));
+});
+
+/**
+ * @api {Post} /mailing/:name Edit mailing list
+ * @apiName Aliases
+ * @apiGroup Mailing
+ * @apiDescription Edit mailing list desc, add or remove subscribed user
+ *
+ * @apiParam {String} [desc] Updated description
+ * @apiParam {String[]} [added] Subscribed users
+ * @apiParam {String[]} [removed] Unsubscribed users
+ *
+ * @apiSuccess {Boolean} success Indicate whether succeeded
+ * @apiSuccess {Number} error The reason of the failure (
+ * <code>undefined</code> if succeeded;
+ * <code>0</code> if internal server error;
+ * <code>1</code> if mailing list not found)
+ *
+ * @apiError (Error 401) Unauthorized Not logged in
+ */
+router.post('/:name', (req, res) => {
+  const listName = req.params.name;
+
+  (async () => {
+    const transaction = await sequelize.transaction();
+
+    try {
+      const list = await MailingList.findOne({
+        where: {
+          id: listName
+        }
+      }, { transaction });
+
+      if (!list) {
+        await transaction.rollback();
+        return errorWith(1)();
+      }
+
+      if (typeof req.body.desc === 'string') {
+        await list.update({ desc: req.body.desc }), { transaction });
+      }
+
+      if (Array.isArray(req.body.added)) {
+        for (const added of req.body.added) {
+          await ForwardList.findOrCreate({
+            where: {
+              from: listName,
+              to: added
+            },
+
+            transaction
+          });
+        }
+      }
+
+      if (Array.isArray(req.body.removed)) {
+        for (const removed of req.body.removed) {
+          await ForwardList.destroy({
+            where: {
+              from: listName,
+              to: removed
+            },
+
+            transaction
+          });
+        }
+      }
+    } catch(err) {
+      await transaction.rollback();
+      throw err;
+    }
+
+    await transaction.commit();
+    return success();
+  })
+  .catch(errorWith(0))
+  .then(json(res));
+});
+
+/**
+ * @api {Delete} /mailing/:name Delete mailing list
+ * @apiName Aliases
+ * @apiGroup Mailing
+ * @apiDescription Delete mailing list desc, add or remove subscribed user
+ *
+ * @apiSuccess {Boolean} success Indicate whether succeeded
+ *
+ * @apiError (Error 401) Unauthorized Not logged in
+ */
+router.delete('/:name', (req, res) => {
+  const listName = req.params.name;
+
+  (async () => {
+    const transaction = await sequelize.transaction();
+
+    try {
+      await MailingList.destroy({
+        where: {
+          id: listName
+        },
+        transaction
+      });
+
+      await ForwardList.destroy({
+        where: {
+          from: listName
+        },
+
+        transaction
+      });
+    } catch(err) {
+      await transaction.rollback();
+      throw err;
+    }
+
+    await transaction.commit();
+    return success();
   })
   .catch(errorWith(0))
   .then(json(res));
