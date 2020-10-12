@@ -47,6 +47,19 @@ router.put('/:name', (req, res) => {
   (async () => {
     const transaction = await sequelize.transaction();
     try {
+      const existingList = await MailingList.findOne({
+        where: {
+          id: listName
+        },
+
+        transaction
+      });
+
+      if (existingList) {
+        await transaction.rollback();
+        return errorWith(0)();
+      }
+
       await MailingList.create({
           id: listName,
           description: `${(new Date()).toISOString().substring(0, 10)}, by ${un}, ${description}`,
@@ -65,12 +78,12 @@ router.put('/:name', (req, res) => {
       }, { transaction });
 
       transaction.commit();
+      return success();
     } catch(err) {
       await transaction.rollback();
       throw err;
     }
   })()
-  .then(success)
   .catch(errorWith(1))
   .then(json(res));
 });
@@ -90,19 +103,19 @@ router.put('/:name', (req, res) => {
 router.get('/', (req, res) => {
   const un = req.session.un;
 
-  const query = {};
-  if (un !== 'wheel') query.shown = true;
-
-  (async () => {
-    const lists = await MailingList.findAll({
-      where: query,
-      order: [
+  const query = {
+	  order: [
         ['id', 'asc']
       ],
       attributes: [ 'id', 'description' ]
-    });
+  };
+  
+  if (un !== 'wheel') query.where = { shown: true };
 
-    const all = lists.map(({ id, desc: description }) => ({ id, desc }));
+  (async () => {
+    const lists = await MailingList.findAll(query);
+
+    const all = lists.map(({ id, description: desc }) => ({ id, desc }));
 
     const aliases = (await ForwardList.findAll({
       where: {
@@ -207,6 +220,7 @@ router.use(auth.wheelOnly);
  *
  * @apiSuccess {String} id Name of the mailing list
  * @apiSuccess {String} desc Description of the mailing list
+ * @apiSuccess {Boolean} isHidden visibility of the mailing list
  * @apiSuccess {String[]} users A list of subscribed users
  *
  * @apiSuccess {Boolean} success Indicate whether succeeded
@@ -235,7 +249,12 @@ router.get('/:name', (req, res) => {
       }
     })).map(fwd => fwd.to);
 
-    return successWith('id', list.id, 'desc', list.desc, 'users', users)();
+    return successWith(
+      'id', list.id,
+      'desc', list.description,
+      'isHidden', list.shown,
+      'users', users
+    )();
   })()
   .catch(errorWith(0))
   .then(json(res));
@@ -248,6 +267,7 @@ router.get('/:name', (req, res) => {
  * @apiDescription Edit mailing list desc, add or remove subscribed user
  *
  * @apiParam {String} [desc] Updated description
+ * @apiParam {Boolean} [isHidden] Updated visibility
  * @apiParam {String[]} [added] Subscribed users
  * @apiParam {String[]} [removed] Unsubscribed users
  *
@@ -278,8 +298,14 @@ router.post('/:name', (req, res) => {
       }
 
       if (typeof req.body.desc === 'string') {
-        await list.update({ desc: req.body.desc }), { transaction });
+        list.description = req.body.desc;
       }
+
+      if (typeof req.body.isHidden === 'boolean') {
+        list.shown = req.body.isHidden;
+      }
+
+      await list.save({ transaction });
 
       if (Array.isArray(req.body.added)) {
         for (const added of req.body.added) {
@@ -313,7 +339,7 @@ router.post('/:name', (req, res) => {
 
     await transaction.commit();
     return success();
-  })
+  })()
   .catch(errorWith(0))
   .then(json(res));
 });
