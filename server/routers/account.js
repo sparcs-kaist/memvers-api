@@ -94,6 +94,7 @@ router.put('/:un', (req, res) => {
  */
 router.delete('/:un', (req, res) => {
   let un = decodeURIComponent(req.params.un);
+  let home = homeDir + un;
 
   Promise.all([
     ldap.del(un),
