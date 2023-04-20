@@ -19,7 +19,7 @@ const defaultConfig = (process.env.NODE_ENV === 'production') ?
     mailSubject: 'old.sparcs.org Password Reset',
     // session
     secure: false,
-    maxAge: 5, // minutes
+    maxAge: 180, // minutes
     // ldap
     ldapHost: 'ldap://ldap.sparcs.org',
     // db
